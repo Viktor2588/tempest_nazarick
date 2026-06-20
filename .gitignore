@@ -1,8 +1,8 @@
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
 
-# Dependencies (Bun)
-node_modules/
+# Dependencies (Bun) — ohne Slash, damit auch ein node_modules-Symlink ignoriert wird
+node_modules
 
 # Editor swap files
 *.swp
