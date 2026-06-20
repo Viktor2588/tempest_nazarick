@@ -153,6 +153,19 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - **Mobile bewusst erhalten:** Unterhalb 1100 px bleibt die bewährte daumenfreundliche Tab-/Kartenansicht vollständig funktionsfähig; kein Engine-Wechsel und keine Aufgabe von Offline-/`file://`-Betrieb oder Save-Kompatibilität.
 - **Visuelle Regression:** Screenshot-Suite auf 20 Aufnahmen erweitert (13 Mobile, 7 Desktop bei 1440×900), zusätzlicher Überbreiten-Check bei 1366×768.
 
+- Phase 19 Zuschauermodus in die top bar aufnehmen
+- Fehlende Kreaturen assets hinzufügen
+- Karte der reichsübsericht gefällt mir sehr gut, wir sollten diese Interaktiv gestalten das anstelle von icons, die gebäude in der Karte hervorgehoben werden.
+- Umgebungskarte sieht leider immer noch nicht so schön aus.
+- vorspulen funktion sollte 5min sein nicht 30s
+
+Phase 20
+- Richtiger Talentbaum siehe last epoch
+
+Phase 21
+- Überarbeitung der Schmiede last epoch, Es sollte  vermieden werden das das spiel 100derte von ausrüstungsgegenstände hat. besser  ne  handvoll die man aufwärten kann. sie sollte Rezepte freischalten, vorhanden Ausrüstung aufwärten können wenn man bestimmte seltene materialien findet um so die qualtität eine ausrüstung zu verbessern.
+
+-Phase 22 Umgebungen  /  territorien  sollten wie  echos  von last epoch sein  prozuderal  generierte  maps mit unterschiedlichen belohnungs & stärke  der gegener affixen.
  
 ### Dateien
 - Spiel: `index.html`, `style.css`, `js/{data,state,systems,ui,main}.js` (offline-/`file://`-tauglich).
