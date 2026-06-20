@@ -39,63 +39,12 @@
   }
 
   // ---------- Ressourcen ----------
-  var resources = [
-    { id: 'magie',    name: 'Magie',    icon: '🔮', cls: 'is-magie',    desc: 'Magicules – die Lebensenergie der Monster.' },
-    { id: 'gold',     name: 'Gold',     icon: '🪙', cls: 'is-gold',     desc: 'Währung für Bau und Handel.' },
-    { id: 'nahrung',  name: 'Nahrung',  icon: '🍖', cls: 'is-nahrung',  desc: 'Versorgt deine Kreaturen jede Runde.' },
-    { id: 'material', name: 'Material', icon: '⛓️', cls: 'is-material', desc: 'Magistahl & Baustoffe für Bauten und Schmiede.' },
-    { id: 'seelen',   name: 'Seelen',   icon: '👻', cls: 'is-seelen',   desc: 'Aus Kämpfen – treiben Evolution & Erwachen an.' },
-    { id: 'wissen',   name: 'Wissen',   icon: '📚', cls: 'is-wissen',   desc: 'Forschung – schaltet Magie und Rezepte frei.' }
-  ];
+  var resources = root.GameDataTables.resources;
 
   // ---------- Gebäude ----------
   // producePer: Produktion pro Stufe/Tick. capacityPer: Kreaturen-Kapazität pro Stufe.
   // special: 'summon' | 'craft' | 'defense'. defensePer: Verteidigungswert pro Stufe.
-  var buildings = [
-    { id: 'magieturm', name: 'Magieturm', icon: '🔮', cat: 'Produktion',
-      desc: 'Sammelt Magicules aus der Umgebung.',
-      cost: { gold: 50, material: 20 }, growth: 1.6, producePer: { magie: 2 } },
-    { id: 'mine', name: 'Magistahl-Mine', icon: '⛏️', cat: 'Produktion',
-      desc: 'Fördert Material und Magistahl.',
-      cost: { gold: 60, material: 10 }, growth: 1.6, producePer: { material: 1.5 } },
-    { id: 'farm', name: 'Farm & Jagdgründe', icon: '🌾', cat: 'Produktion',
-      desc: 'Erzeugt Nahrung für deine Kreaturen.',
-      cost: { gold: 40, material: 15 }, growth: 1.55, producePer: { nahrung: 3 } },
-    { id: 'markt', name: 'Großer Markt', icon: '🏪', cat: 'Produktion',
-      desc: 'Handel bringt stetiges Gold.',
-      cost: { gold: 80, material: 30 }, growth: 1.6, producePer: { gold: 2.5 } },
-    { id: 'forschungsgilde', name: 'Forschungsgilde', icon: '📚', cat: 'Wissen',
-      desc: 'Gelehrte erzeugen Wissen für die Forschung.',
-      cost: { gold: 120, material: 60 }, growth: 1.7, producePer: { wissen: 1 } },
-    { id: 'wohnbezirk', name: 'Wohnbezirk', icon: '🏘️', cat: 'Reich',
-      desc: 'Erhöht die Kapazität für Kreaturen.',
-      cost: { gold: 70, material: 40 }, growth: 1.55, capacityPer: 3 },
-    { id: 'beschwoerungskreis', name: 'Beschwörungskreis', icon: '✨', cat: 'Reich',
-      desc: 'Höhere Stufen rufen stärkere Kreaturen und senken die Kosten.',
-      cost: { magie: 80, material: 40 }, growth: 1.8, special: 'summon' },
-    { id: 'arkane_akademie', name: 'Arkane Akademie', icon: '🪄', cat: 'Magie',
-      desc: 'Lehrt aktive Kampf- und Abenteuerzauber – getrennt von Reichsritualen.',
-      cost: { gold: 140, material: 70, wissen: 50 }, growth: 1.75, special: 'fieldMagic' },
-    { id: 'schmiede', name: 'Schmiede', icon: '⚒️', cat: 'Reich',
-      desc: 'Erlaubt das Schmieden von Ausrüstung; höhere Stufen = bessere Qualität.',
-      cost: { gold: 150, material: 80 }, growth: 1.75, special: 'craft' },
-    { id: 'labyrinth', name: 'Labyrinth', icon: '🌀', cat: 'Verteidigung',
-      desc: 'Verteidigt dein Reich und erntet passiv Seelen.',
-      cost: { magie: 200, material: 120, gold: 200 }, growth: 1.9, special: 'defense',
-      producePer: { seelen: 0.4 }, defensePer: 60 },
-    { id: 'handelshafen', name: 'Handelshafen', icon: '⚓', cat: 'Produktion',
-      desc: 'Fernhandel über die See bringt reichlich Gold.',
-      cost: { gold: 200, material: 120 }, growth: 1.65, producePer: { gold: 5 } },
-    { id: 'bibliothek', name: 'Große Bibliothek', icon: '📖', cat: 'Wissen',
-      desc: 'Sammelt Wissen und steigert die Forschung (+5 % je Stufe).',
-      cost: { gold: 140, material: 70 }, growth: 1.65, producePer: { wissen: 2 }, effect: { wissen: 0.05 } },
-    { id: 'arena', name: 'Kampfarena', icon: '🏟️', cat: 'Reich',
-      desc: 'Trainiert deine Streitmacht – +5 % Armee-Kampfkraft je Stufe.',
-      cost: { gold: 180, material: 90 }, growth: 1.7, effect: { armee: 0.05 } },
-    { id: 'seelentempel', name: 'Seelentempel', icon: '⛩️', cat: 'Reich',
-      desc: 'Erntet passiv Seelen und steigert deren Ausbeute (+5 % je Stufe).',
-      cost: { magie: 160, material: 80, gold: 120 }, growth: 1.8, producePer: { seelen: 0.5 }, effect: { seelen: 0.05 } }
-  ];
+  var buildings = root.GameDataTables.buildings;
 
   // ---------- Skills (Signaturfähigkeiten von Kreaturen) ----------
   var skills = {
@@ -169,35 +118,11 @@
   // Aktive Magie ist bewusst von den dauerhaften Reichsritualen (`magic`)
   // getrennt. Kampfzauber schalten Rasterkampf-Aktionen frei;
   // Abenteuerzauber werden auf strategische Armeegruppen gewirkt.
-  var fieldMagic = [
-    { id: 'kampf_feuerlanze', name: 'Feuerlanze', icon: '🔥', school: 'Feuer', type: 'combat', academy: 1, ability: 'feuerlanze',
-      cost: { wissen: 35, magie: 60 }, desc: 'Aktiver Fernzauber; kann Brand verursachen.' },
-    { id: 'kampf_frostsplitter', name: 'Frostsplitter', icon: '❄️', school: 'Wasser', type: 'combat', academy: 1, ability: 'frostsplitter',
-      cost: { wissen: 40, magie: 65 }, desc: 'Aktiver Fernzauber; Frost senkt gegnerischen Angriff.' },
-    { id: 'kampf_sturmstoss', name: 'Sturmstoß', icon: '⚡', school: 'Wind', type: 'combat', academy: 2, ability: 'sturmstoss',
-      cost: { wissen: 110, magie: 150 }, desc: 'Elektrischer Fernzauber mit Chance auf Schock.' },
-    { id: 'kampf_lichtsegen', name: 'Lichtsegen', icon: '✨', school: 'Licht', type: 'combat', academy: 2, ability: 'lichtsegen',
-      cost: { wissen: 140, magie: 180 }, desc: 'Heilt einen verbündeten Stapel auf dem Schlachtfeld.' },
-    { id: 'kampf_seelensog', name: 'Seelensog', icon: '🌑', school: 'Dunkel', type: 'combat', academy: 3, ability: 'seelensog',
-      cost: { wissen: 320, magie: 360, seelen: 35 }, desc: 'Entzieht Leben und heilt den Zaubernden.' },
-    { id: 'abenteuer_windmarsch', name: 'Windmarsch', icon: '🌬️', school: 'Wind', type: 'adventure', academy: 1,
-      cost: { wissen: 55, magie: 90 }, castCost: { magie: 75 }, cooldown: 30, effect: 'movement', desc: 'Stellt die Bewegungspunkte einer Armee vollständig wieder her.' },
-    { id: 'abenteuer_feldbarriere', name: 'Feldbarriere', icon: '🛡️', school: 'Erde', type: 'adventure', academy: 2,
-      cost: { wissen: 160, magie: 220 }, castCost: { magie: 140, seelen: 5 }, cooldown: 45, effect: 'ward', desc: 'Halbiert die Truppenverluste im nächsten Kartenkampf.' },
-    { id: 'abenteuer_heimkehr', name: 'Tor nach Tempest', icon: '🌀', school: 'Raum/Zeit', type: 'adventure', academy: 3,
-      cost: { wissen: 380, magie: 500, seelen: 25 }, castCost: { magie: 280 }, cooldown: 75, effect: 'return', desc: 'Versetzt eine Armee sofort zur Hauptstadt; ihre Bewegung endet.' }
-  ];
+  var fieldMagic = root.GameDataTables.fieldMagic;
 
   // ---------- Aspekte (Build-Prägung bei der Namensgebung) ----------
   // statMod multipliziert auf die Basiswerte; skill = gewährter Signatur-Skill.
-  var aspects = [
-    { id: 'wuterich', name: 'Wüterich', icon: '⚔️', schule: 'Offensiv', skill: 'raubtier',
-      statMod: { ang: 1.15, tmp: 1.10 }, desc: 'Offensiv – mehr Angriff & Tempo.' },
-    { id: 'bollwerk', name: 'Bollwerk', icon: '🛡️', schule: 'Defensiv', skill: 'stahlhaut',
-      statMod: { ver: 1.20, lp: 1.15 }, desc: 'Defensiv – mehr Verteidigung & Leben.' },
-    { id: 'arkanist', name: 'Arkanist', icon: '🔮', schule: 'Arkan', skill: 'magieader',
-      statMod: { mag: 1.20, tmp: 1.05 }, desc: 'Arkan – deutlich mehr Magie.' }
-  ];
+  var aspects = root.GameDataTables.aspects;
 
   // ---------- Kreaturen (13 Linien) ----------
   // summon: Beschwörungskosten (nur Grundformen). evolvesTo: [{to, req}].
@@ -219,530 +144,74 @@
   //   beuteRang (int)                           – verschiebt Beute-Seltenheit nach oben
   //   produce { res: n }                        – +n Ressource pro Tick (direkt)
   // Kosten & Tier-Voraussetzung (req.magicTier) werden unten automatisch gesetzt.
-  var magic = [
-    // Tier 1 (ohne Forschung verfügbar) – einfache Einstiegszauber
-    { id: 'magiestrom',  name: 'Magiestrom',  icon: '🌊', tier: 1, schule: 'Wasser', desc: '+15 % Magieproduktion – ein steter Magicule-Strom.', effect: { produktionMagie: 0.15 } },
-    { id: 'feuerlanze',  name: 'Feuerlanze',  icon: '🔥', tier: 1, schule: 'Feuer',  desc: 'Brennende Lanzen: +12 % Armee-Kampfkraft.', effect: { armee: 0.12 } },
-    { id: 'wasserwall',  name: 'Wasserwall',  icon: '💧', tier: 1, schule: 'Wasser', desc: 'Eine Wand aus Wasser: +12 % Verteidigung.', effect: { verteidigung: 0.12 } },
-    // Tier 2 – erste Spezial-Effekte
-    { id: 'windschritt', name: 'Windschritt', icon: '🌬️', tier: 2, schule: 'Wind',  desc: 'Deine Truppen ziehen schneller: −15 % Expeditionsdauer.', effect: { expedTempo: 0.15 } },
-    { id: 'erdbarriere', name: 'Erdwall-Barriere', icon: '🪨', tier: 2, schule: 'Erde', desc: 'Steinwälle: +20 % Verteidigung.', effect: { verteidigung: 0.20 } },
-    { id: 'flammensturm', name: 'Flammensturm', icon: '🔥', tier: 2, schule: 'Feuer', desc: 'Ein Feuersturm fegt voran: +18 % Armee-Kampfkraft.', effect: { armee: 0.18 } },
-    // Tier 3
-    { id: 'todesstrahl', name: 'Todesstrahl', icon: '☠️', tier: 3, schule: 'Tod',    desc: 'Versengt Feinde: +22 % Armee und +10 % Seelen.', effect: { armee: 0.22, seelen: 0.10 } },
-    { id: 'zeitbeschleunigung', name: 'Zeitbeschleunigung', icon: '⏳', tier: 3, schule: 'Raum/Zeit', desc: 'Die Zeit fließt schneller: +15 % auf alle Produktion.', effect: { produktionAll: 0.15 } },
-    { id: 'ruf_der_ahnen', name: 'Ruf der Ahnen', icon: '📜', tier: 3, schule: 'Geist', desc: 'Ruft Mächtigeres herbei: Beschwörung +1 Rang.', effect: { summonRang: 1 } },
-    // Tier 4
-    { id: 'heillicht',   name: 'Heilendes Licht', icon: '🕊️', tier: 4, schule: 'Licht', desc: 'Verwundete genesen doppelt so schnell.', effect: { heiltempo: 0.5 } },
-    { id: 'arkane_effizienz', name: 'Arkane Effizienz', icon: '✨', tier: 4, schule: 'Geist', desc: 'Beschwörung −20 % und Evolution −20 % günstiger.', effect: { summonRabatt: 0.20, evoRabatt: 0.20 } },
-    { id: 'eiszone',     name: 'Eisige Zone',  icon: '❄️', tier: 4, schule: 'Wasser', desc: '+22 % Verteidigung; Rivalen rüsten 30 % langsamer.', effect: { verteidigung: 0.22, threatRuhe: 0.30 } },
-    // Tier 5
-    { id: 'meteor',      name: 'Meteor',       icon: '☄️', tier: 5, schule: 'Feuer', desc: 'Ein Einschlag aus dem Himmel: +30 % Armee-Kampfkraft.', effect: { armee: 0.30 } },
-    { id: 'transmutation', name: 'Transmutation', icon: '⚗️', tier: 5, schule: 'Erde', desc: 'Wandelt Magie in Materie: +6 Material/Sek.', effect: { produce: { material: 6 } } },
-    { id: 'erfahrungsquell', name: 'Erfahrungsquell', icon: '🌟', tier: 5, schule: 'Geist', desc: 'Lehrreiche Feldzüge: +30 % Erfahrung aus Expeditionen.', effect: { xp: 0.30 } },
-    // Tier 6
-    { id: 'gravitation', name: 'Gravitation',  icon: '🌀', tier: 6, schule: 'Raum/Zeit', desc: 'Zermalmende Schwerkraft: +35 % Armee-Kampfkraft.', effect: { armee: 0.35 } },
-    { id: 'baumeister',  name: 'Baumeister-Ritual', icon: '🏗️', tier: 6, schule: 'Erde', desc: 'Geister errichten Bauten: −20 % Baukosten.', effect: { bauRabatt: 0.20 } },
-    { id: 'glueckszauber', name: 'Glückszauber', icon: '🍀', tier: 6, schule: 'Geist', desc: '+40 % Beute-Chance und bessere Beute-Qualität.', effect: { drop: 0.40, beuteRang: 1 } },
-    // Tier 7
-    { id: 'daemonenpakt', name: 'Dämonenpakt', icon: '😈', tier: 7, schule: 'Tod', desc: 'Ein finsterer Pakt: +45 % Armee-Kampfkraft.', effect: { armee: 0.45 } },
-    { id: 'magiefluss',  name: 'Magiefluss',   icon: '🌊', tier: 7, schule: 'Wasser', desc: 'Ein reißender Strom roher Magie: +14 Magie/Sek.', effect: { produce: { magie: 14 } } },
-    { id: 'seelenbrunnen', name: 'Seelenbrunnen', icon: '🕳️', tier: 7, schule: 'Tod', desc: 'Ein Brunnen quillt stetig Seelen: +1,5 Seelen/Sek.', effect: { produce: { seelen: 1.5 } } },
-    // Tier 8
-    { id: 'weltenbrand', name: 'Weltenbrand',  icon: '🔥', tier: 8, schule: 'Feuer', desc: 'Die Welt steht in Flammen: +55 % Armee-Kampfkraft.', effect: { armee: 0.55 } },
-    { id: 'wohlstand',   name: 'Wohlstand',    icon: '💰', tier: 8, schule: 'Erde', desc: 'Blühender Handel: +22 Gold/Sek.', effect: { produce: { gold: 22 } } },
-    { id: 'hoeherer_ruf', name: 'Höherer Ruf', icon: '📯', tier: 8, schule: 'Geist', desc: 'Beschwörung +1 Rang und +4 Kreaturen-Kapazität.', effect: { summonRang: 1, kapazitaet: 4 } },
-    // Tier 9
-    { id: 'urgewalt',    name: 'Urgewalt',     icon: '⚡', tier: 9, schule: 'Wind', desc: 'Entfesselter Sturm: +55 % Armee und −20 % Expeditionsdauer.', effect: { armee: 0.55, expedTempo: 0.20 } },
-    { id: 'erleuchtung', name: 'Erleuchtung',  icon: '🔆', tier: 9, schule: 'Licht', desc: 'Allwissen erwacht: +100 % Wissensproduktion.', effect: { wissen: 1.0 } },
-    { id: 'zeitriss',    name: 'Zeitriss',     icon: '⏳', tier: 9, schule: 'Raum/Zeit', desc: 'Ein Riss in der Zeit: +35 % Produktion und −20 % Expeditionsdauer.', effect: { produktionAll: 0.35, expedTempo: 0.20 } },
-    // Tier 10
-    { id: 'vernichtung', name: 'Vernichtung',  icon: '💥', tier: 10, schule: 'Tod', desc: 'Reine Auslöschung: +90 % Armee-Kampfkraft.', effect: { armee: 0.90 } },
-    { id: 'goettliche_gunst', name: 'Göttliche Gunst', icon: '😇', tier: 10, schule: 'Licht', desc: 'Segen von oben: +50 % auf alle Produktion.', effect: { produktionAll: 0.50 } },
-    { id: 'seelensturm', name: 'Seelensturm',  icon: '🌪️', tier: 10, schule: 'Tod', desc: 'Ein Sturm aus Seelen: +100 % Seelen und bessere Beute.', effect: { seelen: 1.0, beuteRang: 1 } },
-    // Super-Tier
-    { id: 'zeitstopp',   name: 'Zeitstopp',    icon: '⌛', tier: 11, schule: 'Super', desc: 'Die Zeit steht still: +100 % Produktion und −40 % Expeditionsdauer.', effect: { produktionAll: 1.0, expedTempo: 0.40 } },
-    { id: 'urknall',     name: 'Urknall',      icon: '🌌', tier: 11, schule: 'Super', desc: 'Schöpfung und Zerstörung: +150 % Armee-Kampfkraft.', effect: { armee: 1.5 } },
-    { id: 'weltbaum',    name: 'Weltenbaum',   icon: '🌳', tier: 11, schule: 'Super', desc: '+60 % Produktion, +60 % Magie und +12 Kapazität.', effect: { produktionAll: 0.60, produktionMagie: 0.60, kapazitaet: 12 } },
-    { id: 'seelenapokalypse', name: 'Seelen-Apokalypse', icon: '☠️', tier: 11, schule: 'Super', desc: 'Das Ende aller Dinge: +200 % Seelen und +100 % Erfahrung.', effect: { seelen: 2.0, xp: 1.0 } }
-  ];
+  var magic = root.GameDataTables.magic;
 
   // ---------- Ausrüstung: Seltenheiten & Rezepte ----------
-  var rarities = [
-    { id: 'gewoehnlich', name: 'Gewöhnlich', cls: 'rar-gewoehnlich', mult: 1.0,  weight: 60 },
-    { id: 'selten',      name: 'Selten',     cls: 'rar-selten',      mult: 1.3,  weight: 26 },
-    { id: 'episch',      name: 'Episch',     cls: 'rar-episch',      mult: 1.7,  weight: 10 },
-    { id: 'legendaer',   name: 'Legendär',   cls: 'rar-legendaer',   mult: 2.3,  weight: 3.5 },
-    { id: 'goettlich',   name: 'Göttlich',   cls: 'rar-goettlich',   mult: 3.2,  weight: 0.5 }
-  ];
+  var rarities = root.GameDataTables.rarities;
 
   // Seltene Komponenten ersetzen die endlose Zufallsbeute. Sie werden in
   // Kämpfen gefunden und erhöhen gezielt die Qualität bestehender Ausrüstung.
-  var forgeMaterials = [
-    { id: 'runenstaub', name: 'Runenstaub', icon: '✨', cls: 'forge-common', tier: 0,
-      desc: 'Verdichtete Runensplitter für seltene Qualität.', source: 'Wald, Höhlen und zerlegte Ausrüstung' },
-    { id: 'magistahlkern', name: 'Magistahlkern', icon: '💠', cls: 'forge-uncommon', tier: 1,
-      desc: 'Ein reiner Magistahlkern für epische Qualität.', source: 'Sumpf, Ruinen und Magistahlmine' },
-    { id: 'seelenkristall', name: 'Seelenkristall', icon: '🔮', cls: 'forge-rare', tier: 2,
-      desc: 'Kristallisierte Essenz für legendäre Qualität.', source: 'Dämonengrenze, Drachengebirge und Seelenorte' },
-    { id: 'drachenessenz', name: 'Drachenessenz', icon: '🐉', cls: 'forge-mythic', tier: 3,
-      desc: 'Katastrophenenergie für göttliche Qualität.', source: 'Endgame-Gebiete, Drachennest und Schatzhort' }
-  ];
+  var forgeMaterials = root.GameDataTables.forgeMaterials;
 
   // slot = Gegenstandsart (passt in gleichnamige Slot-Position bzw. denselben Typ).
   // set = Set-Zugehörigkeit. req.research = forschungsgebunden. unique/fixedRarity = Unikat.
-  var recipes = [
-    // Magistahl-Garnitur (früh)
-    { id: 'magistahlklinge', name: 'Magistahl-Klinge', icon: '🗡️', slot: 'waffe', schmiede: 1, set: 'set_magistahl', starter: true,
-      cost: { material: 40, magie: 20 }, stats: { ang: 12 }, desc: 'Solide Klinge aus Magistahl.' },
-    { id: 'magistahlpanzer', name: 'Magistahl-Panzer', icon: '🛡️', slot: 'ruestung', schmiede: 1, set: 'set_magistahl', starter: true,
-      cost: { material: 50, magie: 15 }, stats: { ver: 12, lp: 30 }, desc: 'Zuverlässige Rüstung.' },
-    { id: 'magistahlhelm', name: 'Magistahl-Helm', icon: '⛑️', slot: 'kopf', schmiede: 1, set: 'set_magistahl', req: { research: 'r_ruestkammer' },
-      cost: { material: 35, magie: 15 }, stats: { ver: 8, lp: 20 }, desc: 'Schützt Kopf und Verstand.' },
-    { id: 'magistahlhandschuhe', name: 'Magistahl-Handschuhe', icon: '🧤', slot: 'haende', schmiede: 1, set: 'set_magistahl', req: { research: 'r_handwerk' },
-      cost: { material: 30, magie: 10 }, stats: { ang: 6, ver: 4 }, desc: 'Fester Griff, harter Schlag.' },
-    { id: 'magistahlstiefel', name: 'Magistahl-Stiefel', icon: '🥾', slot: 'fuesse', schmiede: 1, set: 'set_magistahl', req: { research: 'r_handwerk' },
-      cost: { material: 30, magie: 10 }, stats: { ver: 6, tmp: 6 }, desc: 'Standfest und flink.' },
-    // Accessoires & Kern
-    { id: 'magieamulett', name: 'Magie-Amulett', icon: '📿', slot: 'accessoire', schmiede: 1, starter: true,
-      cost: { material: 20, magie: 40 }, stats: { mag: 14 }, desc: 'Verstärkt magische Kräfte.' },
-    { id: 'magiering', name: 'Magie-Ring', icon: '💍', slot: 'accessoire', schmiede: 2, req: { research: 'r_juwelier' },
-      cost: { material: 40, magie: 60 }, stats: { mag: 18, tmp: 6 }, desc: 'Fein gearbeiteter Ring.' },
-    { id: 'geisterkern', name: 'Geisterkern', icon: '🔆', slot: 'kern', schmiede: 2, req: { research: 'r_seelenschmiede' },
-      cost: { material: 60, magie: 80, seelen: 20 }, stats: { mag: 20, lp: 30 }, desc: 'Ein gebundener Elementargeist.' },
-    { id: 'bestienklaue', name: 'Bestienklaue', icon: '🐾', slot: 'waffe', schmiede: 2,
-      cost: { material: 80, magie: 50, seelen: 10 }, stats: { ang: 24, tmp: 8 }, desc: 'Aus den Klauen erlegter Bestien.' },
-    // Drachenhort (spät)
-    { id: 'seelenfresserklinge', name: 'Seelenfresser-Klinge', icon: '⚔️', slot: 'waffe', schmiede: 3, set: 'set_drache',
-      cost: { material: 140, magie: 160, seelen: 60 }, stats: { ang: 48, mag: 20 }, desc: 'Eine Klinge, die nach Seelen dürstet.' },
-    { id: 'drachenschuppenpanzer', name: 'Drachenschuppen-Panzer', icon: '🐲', slot: 'ruestung', schmiede: 3, set: 'set_drache',
-      cost: { material: 160, magie: 120, seelen: 30 }, stats: { ver: 30, lp: 80 }, desc: 'Nahezu undurchdringlich.' },
-    { id: 'drachenhelm', name: 'Drachenhelm', icon: '🐉', slot: 'kopf', schmiede: 3, set: 'set_drache', req: { research: 'r_handwerk' },
-      cost: { material: 120, magie: 90, seelen: 20 }, stats: { ver: 18, lp: 40, mag: 10 }, desc: 'Krone aus Drachenschuppen.' },
-    // Unikate (forschungsgebunden, feste Seltenheit)
-    { id: 'klinge_des_untergangs', name: 'Klinge des Untergangs', icon: '🗡️', slot: 'waffe', schmiede: 3, unique: true, fixedRarity: 'legendaer', req: { research: 'r_meisterschmied' },
-      cost: { material: 300, magie: 300, seelen: 120 }, stats: { ang: 80, mag: 40 }, desc: 'Eine Waffe von düsterer Berühmtheit.' },
-    { id: 'krone_des_daemonenlords', name: 'Krone des Dämonenlords', icon: '👑', slot: 'kopf', schmiede: 3, unique: true, fixedRarity: 'goettlich', req: { research: 'r_artefakte' },
-      cost: { material: 500, magie: 600, seelen: 300 }, stats: { mag: 60, lp: 120, ver: 40 }, desc: 'Insignie wahrer Herrschaft.' },
-    { id: 'stab_der_weisheit', name: 'Stab der Weisheit', icon: '🪄', slot: 'waffe', schmiede: 3, unique: true, fixedRarity: 'goettlich', req: { research: 'r_artefakte' },
-      cost: { material: 400, magie: 800, seelen: 250 }, stats: { mag: 120 }, desc: 'Konzentrierte arkane Allmacht.' },
-    // Windklinge (schnelle Waffe, kein Set)
-    { id: 'windklinge', name: 'Windklinge', icon: '🌪️', slot: 'waffe', schmiede: 2,
-      cost: { material: 70, magie: 40 }, stats: { ang: 20, tmp: 12 }, desc: 'Leicht wie der Wind, schnell wie ein Hieb.' },
-    // Geistergewand-Set (Magie)
-    { id: 'feenstab', name: 'Feenstab', icon: '🪄', slot: 'waffe', schmiede: 2, set: 'set_geist',
-      cost: { material: 50, magie: 80 }, stats: { mag: 22 }, desc: 'Ein Stab, durchwoben von Geistermagie.' },
-    { id: 'geistermantel', name: 'Geistermantel', icon: '👘', slot: 'ruestung', schmiede: 2, set: 'set_geist',
-      cost: { material: 60, magie: 70 }, stats: { ver: 14, mag: 14 }, desc: 'Stoff aus gebundenem Geisterlicht.' },
-    { id: 'geisterschleier', name: 'Geisterschleier', icon: '🌫️', slot: 'accessoire', schmiede: 2, set: 'set_geist',
-      cost: { material: 30, magie: 90 }, stats: { mag: 16, tmp: 10 }, desc: 'Verhüllt den Träger in Geisternebel.' },
-    // Glutregalia-Set (Phönix, spät)
-    { id: 'glutfeder_klinge', name: 'Glutfeder-Klinge', icon: '🗡️', slot: 'waffe', schmiede: 3, set: 'set_phoenix',
-      cost: { material: 150, magie: 170, seelen: 60 }, stats: { ang: 46, mag: 28 }, desc: 'Geschmiedet aus glühenden Phönixfedern.' },
-    { id: 'phoenixmantel', name: 'Phönixmantel', icon: '🧥', slot: 'ruestung', schmiede: 3, set: 'set_phoenix',
-      cost: { material: 170, magie: 140, seelen: 40 }, stats: { ver: 28, lp: 90, mag: 20 }, desc: 'Lodert sanft und heilt seinen Träger.' },
-    { id: 'glutkrone', name: 'Glutkrone', icon: '👑', slot: 'kopf', schmiede: 3, set: 'set_phoenix', req: { research: 'r_handwerk' },
-      cost: { material: 130, magie: 110, seelen: 30 }, stats: { mag: 30, lp: 50 }, desc: 'Eine Krone aus ewiger Flamme.' },
-    // Unikat (Phönixschmiede)
-    { id: 'flamme_der_wiedergeburt', name: 'Flamme der Wiedergeburt', icon: '🔥', slot: 'kern', schmiede: 3, unique: true, fixedRarity: 'goettlich', req: { research: 'r_phoenixschmiede' },
-      cost: { material: 400, magie: 700, seelen: 300 }, stats: { mag: 90, lp: 120, tmp: 40 }, desc: 'Ein gebundener Phönixfunke – Tod ist nur ein neuer Anfang.' }
-  ];
+  var recipes = root.GameDataTables.recipes;
 
   // Slot-Positionen (type = Gegenstandsart; base = von Anfang an offen, sonst per Forschung).
-  var equipSlots = [
-    { id: 'waffe',       name: 'Waffe',        icon: '🗡️', type: 'waffe',      base: true },
-    { id: 'kopf',        name: 'Kopf',         icon: '⛑️', type: 'kopf',       base: false },
-    { id: 'ruestung',    name: 'Körper',       icon: '🛡️', type: 'ruestung',   base: true },
-    { id: 'haende',      name: 'Hände',        icon: '🧤', type: 'haende',     base: false },
-    { id: 'fuesse',      name: 'Füße',         icon: '🥾', type: 'fuesse',     base: false },
-    { id: 'accessoire',  name: 'Accessoire',   icon: '📿', type: 'accessoire', base: true },
-    { id: 'accessoire2', name: 'Accessoire II', icon: '💍', type: 'accessoire', base: false },
-    { id: 'kern',        name: 'Kern/Geist',   icon: '🔆', type: 'kern',       base: false }
-  ];
+  var equipSlots = root.GameDataTables.equipSlots;
 
   // ---------- Regionen (Expeditionen / Territorium) ----------
-  var regions = [
-    { id: 'wald', name: 'Wald von Jura', icon: '🌲', power: 40, dauer: 8,
-      rewards: { seelen: 6, material: 30, gold: 20 }, xp: 30, dropChance: 0.20,
-      claimBonus: { nahrung: 1, material: 0.5 }, desc: 'Dichter Urwald voller Bestien.' },
-    { id: 'hoehlen', name: 'Tiefe Höhlen', icon: '🕳️', power: 120, dauer: 12,
-      rewards: { seelen: 14, material: 60, magie: 30 }, xp: 60, dropChance: 0.30,
-      claimBonus: { material: 1.5 }, desc: 'Dunkle Stollen mit Magistahl-Adern.' },
-    { id: 'sumpf', name: 'Giftsumpf', icon: '🐊', power: 300, dauer: 16,
-      rewards: { seelen: 30, gold: 120, material: 60 }, xp: 110, dropChance: 0.35,
-      claimBonus: { gold: 2 }, desc: 'Heimat von Echsen und Orks.' },
-    { id: 'ruinen', name: 'Vergessene Ruinen', icon: '🏚️', power: 700, dauer: 20,
-      rewards: { seelen: 80, wissen: 70, magie: 150 }, xp: 200, dropChance: 0.45,
-      claimBonus: { wissen: 1, magie: 1 }, desc: 'Untote bewachen altes Wissen.' },
-    { id: 'grenze', name: 'Dämonengrenze', icon: '🔥', power: 1600, dauer: 30,
-      rewards: { seelen: 160, gold: 300, magie: 200 }, xp: 380, dropChance: 0.50,
-      claimBonus: { magie: 2, gold: 2 }, desc: 'Die Schwelle zur Dämonenwelt.' },
-    { id: 'gebirge', name: 'Drachengebirge', icon: '🏔️', power: 3600, dauer: 40,
-      rewards: { seelen: 380, material: 400, magie: 300 }, xp: 700, dropChance: 0.60,
-      claimBonus: { material: 3, magie: 2 }, desc: 'Horst uralter Drachen.' },
-    { id: 'schattenreich', name: 'Schattenreich', icon: '🌑', power: 8000, dauer: 50,
-      rewards: { seelen: 800, magie: 600, gold: 600 }, xp: 1300, dropChance: 0.65,
-      claimBonus: { seelen: 1, magie: 3 }, desc: 'Ein Reich ewiger Finsternis voller Untoter.' },
-    { id: 'himmelsfeste', name: 'Schwebende Himmelsfeste', icon: '🏯', power: 18000, dauer: 60,
-      rewards: { seelen: 1600, wissen: 400, material: 800, magie: 900 }, xp: 2400, dropChance: 0.70,
-      claimBonus: { wissen: 3, magie: 3 }, desc: 'Eine uralte Festung über den Wolken.' },
-    { id: 'goetterthron', name: 'Thron der Götter', icon: '🌠', power: 40000, dauer: 75,
-      rewards: { seelen: 3600, gold: 1500, magie: 1500, material: 1200 }, xp: 4500, dropChance: 0.80,
-      claimBonus: { magie: 4, gold: 4, material: 3 }, desc: 'Die letzte Schwelle – Sitz vergessener Götter.' }
-  ];
+  var regions = root.GameDataTables.regions;
 
   // Strategische Abenteuerkarte. x/y sind Prozentkoordinaten auf einer frei
   // gezeichneten Landschaft; links bilden ein echtes 2D-Wegenetz.
-  var strategicNodes = [
-    { id: 'hauptstadt', name: 'Tempest', icon: '🏰', x: 7, y: 50, kind: 'capital', capital: true, links: ['wald', 'site_manaquelle'] },
-    { id: 'wald', x: 20, y: 48, kind: 'region', links: ['hauptstadt', 'hoehlen', 'site_manaquelle', 'site_jagdlager'] },
-    { id: 'site_manaquelle', x: 17, y: 20, kind: 'resource', siteId: 'manaquelle', links: ['hauptstadt', 'wald'], requires: 'wald' },
-    { id: 'site_jagdlager', x: 32, y: 31, kind: 'resource', siteId: 'jagdlager', links: ['wald', 'sumpf'], requires: 'wald' },
-    { id: 'hoehlen', x: 31, y: 72, kind: 'region', links: ['wald', 'sumpf', 'site_mine'] },
-    { id: 'site_mine', x: 40, y: 89, kind: 'resource', siteId: 'magistahlmine', links: ['hoehlen'], requires: 'hoehlen' },
-    { id: 'sumpf', x: 44, y: 65, kind: 'region', links: ['hoehlen', 'ruinen', 'site_jagdlager', 'site_handel'] },
-    { id: 'site_handel', x: 51, y: 86, kind: 'resource', siteId: 'handelsposten', links: ['sumpf', 'ruinen'], requires: 'sumpf' },
-    { id: 'ruinen', x: 56, y: 57, kind: 'region', links: ['sumpf', 'grenze', 'site_handel', 'site_archiv'] },
-    { id: 'site_archiv', x: 62, y: 79, kind: 'resource', siteId: 'altes_archiv', links: ['ruinen', 'grenze'], requires: 'ruinen' },
-    { id: 'grenze', x: 66, y: 47, kind: 'region', links: ['ruinen', 'gebirge', 'site_archiv'] },
-    { id: 'gebirge', x: 75, y: 22, kind: 'region', links: ['grenze', 'schattenreich', 'site_drachennest'] },
-    { id: 'site_drachennest', x: 86, y: 8, kind: 'discovery', siteId: 'drachennest', links: ['gebirge', 'himmelsfeste'], requires: 'gebirge' },
-    { id: 'schattenreich', x: 80, y: 53, kind: 'region', links: ['gebirge', 'himmelsfeste', 'site_seelenbrunnen', 'site_schatzhort'] },
-    { id: 'site_seelenbrunnen', x: 73, y: 83, kind: 'resource', siteId: 'seelenbrunnen', links: ['schattenreich'], requires: 'schattenreich' },
-    { id: 'site_schatzhort', x: 91, y: 76, kind: 'discovery', siteId: 'schatzhort', links: ['schattenreich', 'goetterthron'], requires: 'schattenreich' },
-    { id: 'himmelsfeste', x: 91, y: 32, kind: 'region', links: ['schattenreich', 'goetterthron', 'site_drachennest'] },
-    { id: 'goetterthron', x: 96, y: 53, kind: 'region', links: ['himmelsfeste', 'site_schatzhort'] }
-  ];
+  var strategicNodes = root.GameDataTables.strategicNodes;
 
   // Eroberbare Ressourcenanlagen produzieren dauerhaft und sind bis Stufe 3
   // ausbaubar. Entdeckungen geben einmalige Beute.
-  var strategicSites = [
-    { id: 'manaquelle', name: 'Wilde Manaquelle', short: 'Manaquelle', icon: '🔮', kind: 'resource', guard: 55,
-      produce: { magie: 1.5 }, upgradeCost: { gold: 120, material: 60 }, desc: 'Ein Magicule-Strom, der in Runenbecken gebändigt werden kann.' },
-    { id: 'jagdlager', name: 'Jura-Jagdlager', short: 'Jagdlager', icon: '🏕️', kind: 'resource', guard: 80,
-      produce: { nahrung: 3 }, upgradeCost: { gold: 100, material: 50 }, desc: 'Jäger und Sammler versorgen Tempests Marschkolonnen.' },
-    { id: 'magistahlmine', name: 'Verlassene Magistahlmine', short: 'Magistahlmine', icon: '⛏️', kind: 'resource', guard: 150,
-      produce: { material: 2 }, forgeReward: { magistahlkern: 1 }, upgradeCost: { gold: 180, material: 80 }, desc: 'Alte Stollen führen zu ergiebigen Magistahladern.' },
-    { id: 'handelsposten', name: 'Freier Handelsposten', short: 'Handelsposten', icon: '🏪', kind: 'resource', guard: 330,
-      produce: { gold: 3 }, upgradeCost: { gold: 240, material: 100 }, desc: 'Eine Karawanenstation an den Wegen zwischen Sumpf und Ruinen.' },
-    { id: 'altes_archiv', name: 'Archiv der Vergessenen', short: 'Altes Archiv', icon: '📜', kind: 'resource', guard: 760,
-      produce: { wissen: 1.5 }, upgradeCost: { gold: 320, material: 160 }, desc: 'Versiegelte Tafeln bergen das Wissen eines untergegangenen Reiches.' },
-    { id: 'seelenbrunnen', name: 'Brunnen der Echos', short: 'Seelenbrunnen', icon: '🕳️', kind: 'resource', guard: 9000,
-      produce: { seelen: 0.5 }, forgeReward: { seelenkristall: 2 }, upgradeCost: { gold: 900, material: 500, magie: 700 }, desc: 'Seelenfragmente sammeln sich in einer bodenlosen schwarzen Quelle.' },
-    { id: 'drachennest', name: 'Verlassenes Drachennest', short: 'Drachennest', icon: '🥚', kind: 'discovery', guard: 4200,
-      rewards: { seelen: 450, material: 600, magie: 300 }, forgeReward: { seelenkristall: 2, drachenessenz: 1 }, desc: 'Zwischen riesigen Schalenresten liegt ein unberührter Drachenhort.' },
-    { id: 'schatzhort', name: 'Hort des Schattenkönigs', short: 'Schatzhort', icon: '💎', kind: 'discovery', guard: 11000,
-      rewards: { gold: 1400, magie: 900, seelen: 700 }, forgeReward: { drachenessenz: 2 }, desc: 'Ein verborgener Hort hinter den Mauern des Schattenreichs.' }
-  ];
+  var strategicSites = root.GameDataTables.strategicSites;
 
   // ---------- Prozedurale Echo-Territorien ----------
   // Die konkrete Karte entsteht deterministisch in systems.js. Diese Pools
   // definieren Umgebung, angekündigte Belohnung und stapelbare Gefahren.
-  var echoEnvironments = [
-    { id: 'jura', name: 'Jura-Nachhall', icon: '🌲', tone: 'gruen', desc: 'Ein überwucherter Abdruck des großen Waldes.' },
-    { id: 'kaverne', name: 'Kristallkaverne', icon: '💎', tone: 'violett', desc: 'Magicule-Kristalle brechen das Licht in kalten Höhlen.' },
-    { id: 'sumpf', name: 'Faulmoor', icon: '🐊', tone: 'gift', desc: 'Giftige Nebel verschlucken Wege und schwächen Marschkolonnen.' },
-    { id: 'ruinen', name: 'Versunkene Ruinen', icon: '🏚️', tone: 'bronze', desc: 'Die Erinnerung eines Reiches, das nie existiert hat.' },
-    { id: 'inferno', name: 'Glutgrenze', icon: '🔥', tone: 'rot', desc: 'Brennende Risse speien Dämonen und Asche.' },
-    { id: 'himmel', name: 'Zerrissener Himmel', icon: '🌩️', tone: 'blau', desc: 'Schwebende Inseln treiben in einem ewigen Sturm.' },
-    { id: 'schatten', name: 'Nachtspiegel', icon: '🌑', tone: 'schwarz', desc: 'Jede Bewegung wirft einen feindseligen Schatten.' }
-  ];
-  var echoRewards = [
-    { id: 'seelen', name: 'Seelenhort', icon: '👻', desc: 'Viele Seelen und etwas Magie.' },
-    { id: 'wissen', name: 'Verlorenes Wissen', icon: '📜', desc: 'Wissen und Magicules für Forschung.' },
-    { id: 'schatz', name: 'Goldschatz', icon: '💰', desc: 'Gold und Material aus einer Echo-Schatzkammer.' },
-    { id: 'schmiede', name: 'Runenfund', icon: '⚒️', desc: 'Eine zur Schwierigkeit passende seltene Schmiedekomponente.' },
-    { id: 'versorgung', name: 'Versorgungslager', icon: '📦', desc: 'Nahrung, Material und Gold für den nächsten Feldzug.' },
-    { id: 'macht', name: 'Machtkern', icon: '🔮', desc: 'Ein ausgewogener Vorrat aus Magie und Seelen.' },
-    { id: 'boss', name: 'Echo-Kern', icon: '👁️', desc: 'Große Beute, seltene Komponenten und ein neuer Echo-Zyklus.' }
-  ];
-  var echoAffixes = [
-    { id: 'gehaertet', name: 'Gehärtet', icon: '🛡️', enemyPower: 0.18, casualties: 1.00, reward: 0.10, desc: '+18 % Gegnerkraft, +10 % Beute' },
-    { id: 'blutdurst', name: 'Blutdurst', icon: '🩸', enemyPower: 0.12, casualties: 1.35, reward: 0.16, desc: '+12 % Gegnerkraft, +35 % Verluste, +16 % Beute' },
-    { id: 'ueberzahl', name: 'Überzahl', icon: '👥', enemyPower: 0.24, casualties: 1.15, reward: 0.18, desc: '+24 % Gegnerkraft, +15 % Verluste, +18 % Beute' },
-    { id: 'arkan', name: 'Arkaner Sturm', icon: '🌌', enemyPower: 0.15, casualties: 1.05, reward: 0.14, desc: '+15 % Gegnerkraft, +14 % Beute' },
-    { id: 'fluch', name: 'Seelenfluch', icon: '☠️', enemyPower: 0.20, casualties: 1.20, reward: 0.22, desc: '+20 % Gegnerkraft, +20 % Verluste, +22 % Beute' },
-    { id: 'unstet', name: 'Unstete Realität', icon: '🌀', enemyPower: 0.10, casualties: 1.10, reward: 0.12, desc: '+10 % Gegnerkraft, +10 % Verluste, +12 % Beute' }
-  ];
+  var echoEnvironments = root.GameDataTables.echoEnvironments;
+  var echoRewards = root.GameDataTables.echoRewards;
+  var echoAffixes = root.GameDataTables.echoAffixes;
 
   // ---------- Rivalen-Dämonenlords (Bedrohungssystem) ----------
   // basePower wächst je abgewehrtem Angriff (growth^Fortschritt). reward = Abwehr-Beute.
   // defeatBonus = dauerhafter Reichsbonus nach endgültigem Sieg (Gegenangriff).
-  var rivals = [
-    { id: 'clayron', name: 'Clayron der Lehmlord', icon: '🗿', basePower: 450, growth: 1.16,
-      reward: { seelen: 60, material: 140 }, defeatBonus: { verteidigung: 0.12 },
-      desc: 'Ein aufstrebender Dämonenlord aus dem Ödland.' },
-    { id: 'glacira', name: 'Frosthexe Glacira', icon: '❄️', basePower: 2400, growth: 1.18,
-      reward: { seelen: 220, magie: 220 }, defeatBonus: { produktionAll: 0.08 },
-      desc: 'Eine eiskalte Hexenkönigin der Nordwüste.' },
-    { id: 'vorgrael', name: 'Vorgrael der Verschlinger', icon: '🐙', basePower: 12000, growth: 1.2,
-      reward: { seelen: 900, gold: 700, material: 500 }, defeatBonus: { armee: 0.15 },
-      desc: 'Ein abgrundtiefer Hunger in Gestalt eines Lords.' }
-  ];
+  var rivals = root.GameDataTables.rivals;
 
   // ---------- Zufalls-Events ----------
   // auto:true → Effekt sofort. Sonst choices[] (Spielerwahl im Modal).
   // effect: { res:{}, cost:{}, buff:{effect:{},dauer,label}, threat:Zahl, summon:'speciesId' }
-  var events = [
-    { id: 'fund', icon: '💰', title: 'Verborgener Hort', weight: 10, auto: true,
-      desc: 'Deine Späher finden einen vergrabenen Schatz.', effect: { res: { gold: 300, material: 120 } } },
-    { id: 'magiesturm', icon: '🌌', title: 'Magiesturm', weight: 8, auto: true,
-      desc: 'Ein Sturm aus Magicules durchzieht das Land.', effect: { buff: { effect: { produktionMagie: 0.5 }, dauer: 120, label: 'Magiesturm' } } },
-    { id: 'missernte', icon: '🥀', title: 'Missernte', weight: 6, auto: true,
-      desc: 'Eine Missernte drückt die Produktion.', effect: { buff: { effect: { produktionAll: -0.2 }, dauer: 80, label: 'Missernte' } } },
-    { id: 'wanderer', icon: '🧙', title: 'Reisender Weiser', weight: 7, auto: true,
-      desc: 'Ein Weiser teilt sein Wissen mit dir.', effect: { res: { wissen: 200 } } },
-    { id: 'gabe', icon: '✨', title: 'Gabe eines Geistes', weight: 5, auto: true,
-      desc: 'Ein Naturgeist gesellt sich zu deinem Reich.', effect: { summon: 'fee' } },
-    { id: 'haendler', icon: '🧳', title: 'Fahrender Händler', weight: 8,
-      desc: 'Ein Händler bietet dir einen Tausch an.', choices: [
-        { label: 'Material kaufen', desc: '−200 Gold → +150 Material', effect: { cost: { gold: 200 }, res: { material: 150 } } },
-        { label: 'Gold kaufen', desc: '−150 Material → +200 Gold', effect: { cost: { material: 150 }, res: { gold: 200 } } },
-        { label: 'Ablehnen', desc: 'Nichts tun', effect: {} }
-      ] },
-    { id: 'monsterflut', icon: '🐗', title: 'Monsterflut', weight: 6,
-      desc: 'Eine Monsterhorde zieht durchs Land.', choices: [
-        { label: 'Jagen', desc: '+120 Seelen, aber Bedrohung steigt', effect: { res: { seelen: 120 }, threat: 30 } },
-        { label: 'Verschanzen', desc: 'Sicher: +30 % Verteidigung (90 s)', effect: { buff: { effect: { verteidigung: 0.3 }, dauer: 90, label: 'Verschanzt' } } }
-      ] },
-    { id: 'dryadenrat', icon: '🌿', title: 'Rat der Dryaden', weight: 5, auto: true,
-      desc: 'Die Hüterinnen des Jura-Waldes bestätigen Tempests Schutzversprechen.', effect: { res: { wissen: 160, magie: 120 } } },
-    { id: 'zwergenkarawane', icon: '⚒️', title: 'Zwergenkarawane', weight: 7,
-      desc: 'Handwerker aus dem Zwergenreich bieten Magistahl und Bauwissen an.', choices: [
-        { label: 'Magistahl kaufen', desc: '−250 Gold → +220 Material', effect: { cost: { gold: 250 }, res: { material: 220 } } },
-        { label: 'Baupläne tauschen', desc: '−120 Material → +180 Wissen', effect: { cost: { material: 120 }, res: { wissen: 180 } } }
-      ] },
-    { id: 'geisterfest', icon: '🧚', title: 'Fest der Elementargeister', weight: 5, auto: true,
-      desc: 'Kleine Geister tanzen über Tempest und verdichten die Magicules.', effect: { buff: { effect: { produktionMagie: 0.35, wissen: 0.2 }, dauer: 100, label: 'Geisterfest' } } },
-    { id: 'bestiengesandte', icon: '🐾', title: 'Gesandte der Bestienvölker', weight: 5,
-      desc: 'Eine Delegation sucht Handel und ein gemeinsames Manöver.', choices: [
-        { label: 'Handelsbund', desc: '+300 Gold, +15 Bedrohung', effect: { res: { gold: 300 }, threat: 15 } },
-        { label: 'Gemeinsames Training', desc: '+25 % Armee für 90 s', effect: { buff: { effect: { armee: 0.25 }, dauer: 90, label: 'Bestienmanöver' } } }
-      ] }
-  ];
+  var events = root.GameDataTables.events;
 
   // ---------- Affinitäten (einmalige Ausrichtung am Meilenstein) ----------
   // On-Affinität: Zauber dieser Schule +25 % wirksam + dauerhafter Reichsbonus.
-  var affinities = [
-    { id: 'feuer',    school: 'Feuer',     name: 'Feuer-Affinität',     icon: '🔥', bonus: { armee: 0.15 },          desc: 'Feuerzauber +25 %, dazu +15 % Armee-Kampfkraft.' },
-    { id: 'wasser',   school: 'Wasser',    name: 'Wasser-Affinität',    icon: '💧', bonus: { produktionAll: 0.10 },  desc: 'Wasserzauber +25 %, dazu +10 % Produktion.' },
-    { id: 'erde',     school: 'Erde',      name: 'Erd-Affinität',       icon: '🪨', bonus: { verteidigung: 0.20 },   desc: 'Erdzauber +25 %, dazu +20 % Verteidigung.' },
-    { id: 'wind',     school: 'Wind',      name: 'Wind-Affinität',      icon: '🌬️', bonus: { produktionAll: 0.10 },  desc: 'Windzauber +25 %, dazu +10 % Produktion.' },
-    { id: 'tod',      school: 'Tod',       name: 'Todes-Affinität',     icon: '☠️', bonus: { seelen: 0.30 },         desc: 'Todeszauber +25 %, dazu +30 % Seelen.' },
-    { id: 'licht',    school: 'Licht',     name: 'Licht-Affinität',     icon: '🔆', bonus: { wissen: 0.5 },          desc: 'Lichtzauber +25 %, dazu +50 % Wissen.' },
-    { id: 'geist',    school: 'Geist',     name: 'Geist-Affinität',     icon: '🔮', bonus: { produktionMagie: 0.30 },desc: 'Geistzauber +25 %, dazu +30 % Magie.' },
-    { id: 'raumzeit', school: 'Raum/Zeit', name: 'Raum/Zeit-Affinität', icon: '⏳', bonus: { produktionAll: 0.12 },  desc: 'Raum/Zeit-Zauber +25 %, dazu +12 % Produktion.' }
-  ];
+  var affinities = root.GameDataTables.affinities;
 
   // ---------- Herrscher-Evolutionsstufen ----------
-  var rulerStages = [
-    { name: 'Schleim',             icon: '🟦', reqLevel: 1,  bonus: {} },
-    { name: 'Magie-Schleim',       icon: '🔵', reqLevel: 5,  bonus: { produktionAll: 0.05 } },
-    { name: 'Dämonen-Schleim',     icon: '🟣', reqLevel: 12, reqSeelen: 200,  bonus: { produktionAll: 0.10, armee: 0.10 } },
-    { name: 'Dämonenlord',         icon: '😈', reqLevel: 22, reqSeelen: 600,  bonus: { produktionAll: 0.15, armee: 0.20, summonRang: 1 } },
-    { name: 'Wahrer Dämonenlord',  icon: '👹', reqLevel: 35, reqSeelen: 2000, bonus: { produktionAll: 0.25, armee: 0.35, summonRang: 2 } },
-    { name: 'Katastrophe',         icon: '🌌', reqLevel: 50, reqSeelen: 6000, bonus: { produktionAll: 0.40, armee: 0.60, summonRang: 3 } }
-  ];
+  var rulerStages = root.GameDataTables.rulerStages;
 
   // ---------- Passiver Herrscher-Talentbaum ----------
   // Last-Epoch-artig: Knoten besitzen mehrere Ränge, Pfad-Voraussetzungen und
   // Schwellen an bereits investierten Punkten im jeweiligen Zweig. `effect`
   // gilt pro investiertem Rang und wird zentral über computeBonuses verrechnet.
-  var talentBranches = [
-    { id: 'verschlinger', name: 'Verschlinger', icon: '🌀', color: '#a976ff', desc: 'Seelen, Anpassung und persönliche Macht.' },
-    { id: 'herrschaft', name: 'Herrschaft', icon: '🚩', color: '#e7a64a', desc: 'Armeen, Logistik und Verteidigung Tempests.' },
-    { id: 'arkana', name: 'Arkana', icon: '🔮', color: '#55bde8', desc: 'Magicules, Forschung und aktive Feldmagie.' }
-  ];
-  var talents = [
-    { id: 't_magicule_koerper', branch: 'verschlinger', row: 0, name: 'Magicule-Körper', icon: '💧', maxRank: 5, requiredSpent: 0,
-      desc: '+4 % Herrscher-LP und +3 % Herrscher-VER pro Rang.', effect: { herrscherLp: 0.04, herrscherVer: 0.03 } },
-    { id: 't_seelensinn', branch: 'verschlinger', row: 1, name: 'Seelensinn', icon: '👁️', maxRank: 5, requiredSpent: 3,
-      requires: { id: 't_magicule_koerper', rank: 3 }, desc: '+5 % Seelenbeute pro Rang.', effect: { seelen: 0.05 } },
-    { id: 't_anpassung', branch: 'verschlinger', row: 2, name: 'Unendliche Anpassung', icon: '🧬', maxRank: 3, requiredSpent: 6,
-      requires: { id: 't_seelensinn', rank: 2 }, desc: '+4 % Herrscher-Kampfkraft und +5 % Heiltempo pro Rang.', effect: { herrscherKampf: 0.04, heiltempo: 0.05 } },
-    { id: 't_unersaettlich', branch: 'verschlinger', row: 3, name: 'Unersättlich', icon: '🌑', maxRank: 3, requiredSpent: 10,
-      requires: { id: 't_anpassung', rank: 2 }, desc: '+6 % Beutechance und −4 % Evolutionskosten pro Rang.', effect: { drop: 0.06, evoRabatt: 0.04 } },
-    { id: 't_beelzebub', branch: 'verschlinger', row: 4, name: 'Beelzebub', icon: '🌌', maxRank: 1, requiredSpent: 15,
-      requires: { id: 't_unersaettlich', rank: 3 }, desc: 'Schlussknoten: +1 Beuterang, +25 % Seelen und +20 % Herrscher-Kampfkraft.', effect: { beuteRang: 1, seelen: 0.25, herrscherKampf: 0.20 } },
-
-    { id: 't_tempest_banner', branch: 'herrschaft', row: 0, name: 'Banner von Tempest', icon: '🏳️', maxRank: 5, requiredSpent: 0,
-      desc: '+2,5 % Armee-Kampfkraft pro Rang.', effect: { armee: 0.025 } },
-    { id: 't_logistik', branch: 'herrschaft', row: 1, name: 'Kriegslogistik', icon: '🛞', maxRank: 5, requiredSpent: 3,
-      requires: { id: 't_tempest_banner', rank: 3 }, desc: '+10 Kommandolimit und +2,5 % Expeditionstempo pro Rang.', effect: { kommando: 10, expedTempo: 0.025 } },
-    { id: 't_bollwerk', branch: 'herrschaft', row: 2, name: 'Unbezwingbares Bollwerk', icon: '🏰', maxRank: 3, requiredSpent: 6,
-      requires: { id: 't_logistik', rank: 2 }, desc: '+6 % Reichsverteidigung pro Rang.', effect: { verteidigung: 0.06 } },
-    { id: 't_heerfuehrer', branch: 'herrschaft', row: 3, name: 'Heerführer', icon: '🎖️', maxRank: 3, requiredSpent: 10,
-      requires: { id: 't_bollwerk', rank: 2 }, desc: '+20 Kommandolimit und +3 % Armee-Kampfkraft pro Rang.', effect: { kommando: 20, armee: 0.03 } },
-    { id: 't_katastrophenmarsch', branch: 'herrschaft', row: 4, name: 'Katastrophenmarsch', icon: '⚔️', maxRank: 1, requiredSpent: 15,
-      requires: { id: 't_heerfuehrer', rank: 3 }, desc: 'Schlussknoten: +25 % Armee-Kampfkraft und +1 Bewegung für alle Armeen.', effect: { armee: 0.25, bewegung: 1 } },
-
-    { id: 't_magicule_kern', branch: 'arkana', row: 0, name: 'Magicule-Kern', icon: '💠', maxRank: 5, requiredSpent: 0,
-      desc: '+4 % Magieproduktion und +3 % Herrscher-MAG pro Rang.', effect: { produktionMagie: 0.04, herrscherMag: 0.03 } },
-    { id: 't_grosser_weiser', branch: 'arkana', row: 1, name: 'Großer Weiser', icon: '🧠', maxRank: 5, requiredSpent: 3,
-      requires: { id: 't_magicule_kern', rank: 3 }, desc: '+12 % Wissensproduktion pro Rang.', effect: { wissen: 0.12 } },
-    { id: 't_elementfokus', branch: 'arkana', row: 2, name: 'Elementfokus', icon: '✨', maxRank: 3, requiredSpent: 6,
-      requires: { id: 't_grosser_weiser', rank: 2 }, desc: '+8 % Schaden und Heilung aktiver Kampfzauber pro Rang.', effect: { feldmagie: 0.08 } },
-    { id: 't_raumherrschaft', branch: 'arkana', row: 3, name: 'Raumherrschaft', icon: '🌀', maxRank: 3, requiredSpent: 10,
-      requires: { id: 't_elementfokus', rank: 2 }, desc: '+5 % Expeditions- und +3 % Heiltempo pro Rang.', effect: { expedTempo: 0.05, heiltempo: 0.03 } },
-    { id: 't_azathoth', branch: 'arkana', row: 4, name: 'Azathoth', icon: '🌠', maxRank: 1, requiredSpent: 15,
-      requires: { id: 't_raumherrschaft', rank: 3 }, desc: 'Schlussknoten: +30 % aktive Feldmagie, +15 % Herrscher-MAG und +10 % Produktion.', effect: { feldmagie: 0.30, herrscherMag: 0.15, produktionAll: 0.10 } }
-  ];
+  var talentBranches = root.GameDataTables.talentBranches;
+  var talents = root.GameDataTables.talents;
 
   // ---------- Forschungsbaum ----------
   // unlocks: magicTier (max freigeschalteter Zauber-Tier), slots [Positions-IDs], effect {…Bonus}.
-  var research = [
-    // Magie-Zweig
-    { id: 'r_arkane_grundlagen', name: 'Arkane Grundlagen', icon: '📘', zweig: 'Magie', desc: 'Schaltet Zauber bis Tier 3 frei.',
-      cost: { wissen: 80 }, req: {}, unlocks: { magicTier: 3 } },
-    { id: 'r_hoehere_magie', name: 'Höhere Magie', icon: '📗', zweig: 'Magie', desc: 'Schaltet Zauber bis Tier 5 frei.',
-      cost: { wissen: 300, magie: 200 }, req: { research: ['r_arkane_grundlagen'] }, unlocks: { magicTier: 5 } },
-    { id: 'r_meistermagie', name: 'Meistermagie', icon: '📕', zweig: 'Magie', desc: 'Schaltet Zauber bis Tier 7 frei.',
-      cost: { wissen: 1200, magie: 800 }, req: { research: ['r_hoehere_magie'], herrscherStufe: 2 }, unlocks: { magicTier: 7 } },
-    { id: 'r_grossmeister', name: 'Großmeister-Arkana', icon: '📓', zweig: 'Magie', desc: 'Schaltet Zauber bis Tier 9 frei.',
-      cost: { wissen: 4000, magie: 3000, seelen: 100 }, req: { research: ['r_meistermagie'], herrscherStufe: 3 }, unlocks: { magicTier: 9 } },
-    { id: 'r_verbotene_kuenste', name: 'Verbotene Künste', icon: '📛', zweig: 'Magie', desc: 'Schaltet Zauber bis Tier 10 frei.',
-      cost: { wissen: 9000, magie: 6000, seelen: 250 }, req: { research: ['r_grossmeister'] }, unlocks: { magicTier: 10 } },
-    { id: 'r_ueberspitzen', name: 'Überspitzen-Magie', icon: '🌌', zweig: 'Magie', desc: 'Schaltet Super-Tier-Magie frei.',
-      cost: { wissen: 20000, magie: 15000, seelen: 600 }, req: { research: ['r_verbotene_kuenste'], herrscherStufe: 4 }, unlocks: { magicTier: 11 } },
-    // Ausrüstungs-Zweig
-    { id: 'r_ruestkammer', name: 'Rüstkammer', icon: '⛑️', zweig: 'Ausrüstung', desc: 'Schaltet Kopf-Slot & Helme frei.',
-      cost: { wissen: 120, material: 80 }, req: {}, unlocks: { slots: ['kopf'] } },
-    { id: 'r_handwerk', name: 'Feines Handwerk', icon: '🧤', zweig: 'Ausrüstung', desc: 'Schaltet Hände- & Füße-Slots frei.',
-      cost: { wissen: 400, material: 200 }, req: { research: ['r_ruestkammer'] }, unlocks: { slots: ['haende', 'fuesse'] } },
-    { id: 'r_juwelier', name: 'Juwelierskunst', icon: '💍', zweig: 'Ausrüstung', desc: 'Schaltet einen 2. Accessoire-Slot frei.',
-      cost: { wissen: 350, magie: 150 }, req: { research: ['r_ruestkammer'] }, unlocks: { slots: ['accessoire2'] } },
-    { id: 'r_seelenschmiede', name: 'Seelenschmiede', icon: '🔆', zweig: 'Ausrüstung', desc: 'Schaltet Kern/Geist-Slot frei.',
-      cost: { wissen: 1500, magie: 600, seelen: 80 }, req: { research: ['r_handwerk'], herrscherStufe: 2 }, unlocks: { slots: ['kern'] } },
-    { id: 'r_meisterschmied', name: 'Meisterschmied', icon: '⚒️', zweig: 'Ausrüstung', desc: 'Schaltet das Unikat „Klinge des Untergangs" frei.',
-      cost: { wissen: 5000, material: 1500, seelen: 150 }, req: { research: ['r_seelenschmiede'], herrscherStufe: 3 }, unlocks: {} },
-    { id: 'r_artefakte', name: 'Verlorene Artefakte', icon: '🏺', zweig: 'Ausrüstung', desc: 'Schaltet göttliche Unikate frei.',
-      cost: { wissen: 12000, magie: 8000, seelen: 400 }, req: { research: ['r_meisterschmied'], herrscherStufe: 4 }, unlocks: {} },
-    // Reich/Ökonomie-Zweig
-    { id: 'r_effiziente_bauten', name: 'Effiziente Bauten', icon: '🏗️', zweig: 'Reich', desc: '−15 % Baukosten.',
-      cost: { wissen: 150 }, req: {}, unlocks: { effect: { bauRabatt: 0.15 } } },
-    { id: 'r_seelenkunde', name: 'Seelenkunde', icon: '👁️', zweig: 'Reich', desc: '+25 % Seelen aus Kämpfen.',
-      cost: { wissen: 250 }, req: {}, unlocks: { effect: { seelen: 0.25 } } },
-    { id: 'r_kriegslehre', name: 'Kriegslehre', icon: '⚔️', zweig: 'Reich', desc: '+15 % Armee-Kampfkraft.',
-      cost: { wissen: 300 }, req: {}, unlocks: { effect: { armee: 0.15 } } },
-    { id: 'r_arkane_oekonomie', name: 'Arkane Ökonomie', icon: '⚖️', zweig: 'Reich', desc: '+10 % auf alle Produktion.',
-      cost: { wissen: 600, magie: 300 }, req: { research: ['r_effiziente_bauten'] }, unlocks: { effect: { produktionAll: 0.10 } } },
-    { id: 'r_weiser_geist', name: 'Weiser Geist', icon: '🧠', zweig: 'Reich', desc: '+50 % Wissensproduktion.',
-      cost: { wissen: 500 }, req: {}, unlocks: { effect: { wissen: 0.5 } } },
-    { id: 'r_naturkunde', name: 'Naturkunde', icon: '🌿', zweig: 'Reich', desc: '+8 % auf alle Produktion.',
-      cost: { wissen: 700, magie: 200 }, req: { research: ['r_arkane_oekonomie'] }, unlocks: { effect: { produktionAll: 0.08 } } },
-    { id: 'r_kriegskunst', name: 'Höhere Kriegskunst', icon: '🎖️', zweig: 'Reich', desc: '+25 % Armee-Kampfkraft.',
-      cost: { wissen: 1500, magie: 400 }, req: { research: ['r_kriegslehre'], herrscherStufe: 2 }, unlocks: { effect: { armee: 0.25 } } },
-    { id: 'r_seelenmeisterschaft', name: 'Seelenmeisterschaft', icon: '🔮', zweig: 'Reich', desc: '+40 % Seelen aus Kämpfen.',
-      cost: { wissen: 1800, seelen: 60 }, req: { research: ['r_seelenkunde'], herrscherStufe: 2 }, unlocks: { effect: { seelen: 0.4 } } },
-    { id: 'r_phoenixschmiede', name: 'Phönixschmiede', icon: '🔥', zweig: 'Ausrüstung', desc: 'Schaltet das Unikat „Flamme der Wiedergeburt" frei.',
-      cost: { wissen: 14000, magie: 9000, seelen: 500 }, req: { research: ['r_artefakte'], herrscherStufe: 4 }, unlocks: {} }
-  ];
+  var research = root.GameDataTables.research;
 
   // ---------- Item-Sets ----------
-  var sets = [
-    { id: 'set_magistahl', name: 'Magistahl-Garnitur', desc: 'Aufeinander abgestimmte Magistahl-Ausrüstung.',
-      bonus: { 2: { kampf: 0.08 }, 3: { kampf: 0.14, stats: { ver: 15 } }, 5: { kampf: 0.25, stats: { ver: 30, lp: 60 } } } },
-    { id: 'set_drache', name: 'Drachenhort', desc: 'Ausrüstung aus den Überresten echter Drachen.',
-      bonus: { 2: { kampf: 0.15, stats: { ang: 20 } }, 3: { kampf: 0.30, stats: { ang: 50, mag: 25 } } } },
-    { id: 'set_geist', name: 'Geistergewand', desc: 'Mit Geistermagie durchwobene Ausrüstung.',
-      bonus: { 2: { kampf: 0.10, stats: { mag: 20 } }, 3: { kampf: 0.22, stats: { mag: 45, tmp: 20 } } } },
-    { id: 'set_phoenix', name: 'Glutregalia', desc: 'Glühende Ausrüstung aus Phönixfedern.',
-      bonus: { 2: { kampf: 0.16, stats: { mag: 28 } }, 3: { kampf: 0.32, stats: { mag: 60, lp: 90 } } } }
-  ];
+  var sets = root.GameDataTables.sets;
 
   // ---------- Hilfe / Erklärungen der Spielsysteme ----------
   // Wird über ℹ️-Knöpfe als Modal angezeigt. steps = kurze Stichpunkte.
-  var help = {
-    start: { icon: '📜', title: 'Willkommen, Herrscher',
-      text: 'Du erwachst als Monster in einer fremden Welt und baust aus einer kleinen Siedlung ein mächtiges Reich auf.',
-      steps: [
-        'Baue im Reich-Tab Produktionsgebäude (🔮 Magie, 🌾 Nahrung, 🪙 Gold, ⛏️ Material).',
-        'Beschwöre Kreaturen und weise ihnen über die Aufgabe einen Job zu – arbeitende Kreaturen erhöhen die Produktion.',
-        'Benenne eine Kreatur (✨), um ihre Kräfte zu wecken und Evolutionen freizuschalten.',
-        'Neue Systeme schalten sich nach und nach frei – du musst dich nie um alles gleichzeitig kümmern.'
-      ] },
-    reich: { icon: '🏰', title: 'Reich & Gebäude',
-      text: 'Gebäude sind das Herz deines Reichs. Höhere Stufen kosten mehr, geben aber dauerhaft mehr Ertrag.',
-      steps: [
-        'Produktion (🔮🌾🪙⛏️📚) liefert jede Sekunde Ressourcen.',
-        'Wohnbezirk erhöht die Kreaturen-Kapazität, der Beschwörungskreis Rang & Rabatt.',
-        'Manche Gebäude geben prozentuale Boni (z. B. Arena: +Armee, Bibliothek: +Wissen).',
-        'Gesperrte Gebäude zeigen ihre Freischalt-Bedingung – sie erscheinen, sobald du sie erfüllst.'
-      ] },
-    kreaturen: { icon: '🐉', title: 'Kreaturen, Namen & Evolution',
-      text: 'Unbenannte Kreaturen bilden einfache Artenstapel; erst ein wahrer Name macht eine Einheit zur individuell ausbaubaren Elite.',
-      steps: [
-        'Beschworene Basistruppen landen automatisch in der Herrscherarmee und werden mit derselben Art gestapelt.',
-        'Unbenannte besitzen nur 1–2 Basisfähigkeiten – keine Ränge, Ausrüstung, Evolution oder Skill-Meisterschaft.',
-        'Benennen (✨) löst eine Einheit aus dem Stapel, gibt +12 % Werte und prägt einen Aspekt. Maximal 40 % des Gefolges und absolut 20 Einheiten können benannt sein.',
-        'Ein leeres Namensfeld erzeugt einen Zufallsnamen. Benannte meistern Skills bis Stufe 5 und wecken Folgefähigkeiten.'
-      ] },
-    magie: { icon: '🔮', title: 'Magie & Forschung',
-      text: 'Magie ist in aktive Feldzauber der Arkanen Akademie, dauerhafte Reichsrituale und den Forschungsbaum getrennt.',
-      steps: [
-        'Die Arkane Akademie lehrt Kampfzauber für das Raster und Abenteuerzauber für konkrete Armeen.',
-        'Reichsrituale geben dauerhafte Effekte; höhere Ritual-Tiers werden über Forschung sichtbar.',
-        'Der Forschungsbaum schaltet Ritual-Tiers, Ausrüstungsplätze und Reichsausbau frei.',
-        'Eine Affinität (ab Herrscher-Stufe 2) verstärkt Zauber ihrer Schule um 25 %.'
-      ] },
-    schmiede: { icon: '⚒️', title: 'Runenschmiede & langlebige Ausrüstung',
-      text: 'Die Runenschmiede baut ein begrenztes Arsenal und verbessert dieselben Gegenstände dauerhaft von Gewöhnlich bis Göttlich.',
-      steps: [
-        'Starter-Baupläne sind sofort bekannt; weitere Rezepte werden mit Wissen und Schmiedekomponenten entschlüsselt oder als Beute entdeckt.',
-        'Jedes Rezept kann nur einmal hergestellt werden. Statt Duplikaten findest du Komponenten für gezielte Qualitätsstufen.',
-        'Runenstaub → Selten, Magistahlkern → Episch, Seelenkristall → Legendär, Drachenessenz → Göttlich.',
-        'Nur der Herrscher und benannte Elite tragen Ausrüstung; feste Positionen bilden einen Diablo-artigen Loadout.',
-        'Alte Duplikate können zerlegt werden; angelegte und einzigartige Gegenstände sind dabei geschützt.'
-      ] },
-    karte: { icon: '🗺️', title: 'Karte, Echos & Rivalen',
-      text: 'Erobere die feste Weltkarte und öffne danach prozedurale Echo-Netze mit sichtbaren Belohnungen, Gefahren und endlos steigender Schwierigkeit.',
-      steps: [
-        'Nur Kreaturen mit Job ⚔️ Armee ziehen in den Kampf; ist deine Kraft ≥ Gegnerkraft, gewinnst du.',
-        'Sicher/Normal verwunden bei Niederlage. Riskant gibt ×1,4 Beute & Drop, aber eingesetzte Kreaturen sterben bei Niederlage.',
-        'Taktische Kämpfe laufen auf einem 7×5-Raster mit Bewegung, Hindernissen, Initiative, Warten, Reichweite und Gegenwehr.',
-        'Auf der Abenteuerkarte liegen bewachte Außenanlagen und Fundorte. Eroberte Anlagen produzieren und sind bis Stufe 3 ausbaubar.',
-        'Nach zwei Territorien öffnen sich deterministisch erzeugte Echo-Netze. Jeder Sieg öffnet verbundene Knoten; der Kern startet den nächsten, stärkeren Zyklus.',
-        'Echo-Affixe erhöhen Gegnerkraft und Verluste, steigern dafür aber die angekündigte Beute. Ein unberührtes Netz kann gegen Wissen neu verwoben werden.',
-        'Regionen schalten sich der Reihe nach frei – die nächste wird als Ausblick gezeigt.',
-        'Erobertes Territorium weckt Rivalen-Dämonenlords: Verteidigung = Labyrinth + stationierte Armee.'
-      ] },
-    armeen: { icon: '🚩', title: 'Armeegruppen & Weltkarte',
-      text: 'Der Main Character führt von Beginn an die Herrscherarmee; benannte Elite kann weitere Armeen über die Karte führen.',
-      steps: [
-        'Alle Start- und neuen Basistruppen hängen an der Herrscherarmee und werden nach Art gestapelt.',
-        'Die erste Namensgebung stellt automatisch eine zweite Armee auf. Weitere Gruppen brauchen je eine freie benannte Kreatur.',
-        'Rang, Level, Herrscherstufe und Arena erhöhen das Kommandolimit. Bis zu vier Truppentypen dürfen gemischt werden.',
-        'Truppen derselben Kreaturenlinie wie der Anführer erhalten +25 % Synergie; Skill-Meisterschaft stärkt den Führungsbonus.',
-        'Bewegungspunkte erneuern sich alle 30 Sekunden. Gruppen folgen dem verzweigten Wegenetz; ungesicherte Orte blockieren den Durchmarsch.',
-        'Kartenkämpfe verursachen dauerhafte Truppenverluste; riskante Niederlagen können auch den Anführer kosten.'
-      ] },
-    fusion: { icon: '🧬', title: 'Chimära-Fusion',
-      text: 'Im Endgame verschmelzen ausschließlich zwei benannte Eliten: eine bleibt und wird dauerhaft stärker, die andere geht als Katalysator auf.',
-      steps: [
-        'Wähle eine benannte Basis und einen ebenfalls benannten Katalysator; unbenannte Stapel sind ausgeschlossen.',
-        'Die Basis erhält je Fusion +15 % Werte (bis zu 5×) und kann einen Skill des Katalysators erben.',
-        'Kostet Seelen & Magie – ein lohnender Sink für überzählige Kreaturen.',
-        'Freigeschaltet ab Herrscher-Stufe „Dämonenlord".'
-      ] },
-    watch: { icon: '👁️', title: 'Zuschauer-Modus',
-      text: 'Lehne dich zurück: Im Zuschauer-Modus spielt sich dein Reich von selbst – ein Berater trifft sinnvolle Entscheidungen.',
-      steps: [
-        'Der Auto-Modus baut, beschwört, benennt, entwickelt, erforscht und schickt Expeditionen los.',
-        'Mit „Sichtbar“ zeigt er jede Aktion in einem Dialog und pausiert kurz; die letzten Schritte bleiben im Aktivitätsprotokoll.',
-        'Du kannst jederzeit eingreifen oder den Modus wieder ausschalten.',
-        'Mit ⏩ Vorspulen springst du mehrere Minuten Spielzeit auf einmal.',
-        'Ideal, um neue Systeme in Aktion zu sehen oder das Spiel laufen zu lassen.'
-      ] },
-    talente: { icon: '🌟', title: 'Herrscher-Talentbaum',
-      text: 'Ab Level 2 und mit jeder neuen Evolutionsstufe erhält der Herrscher Talentpunkte für drei dauerhafte Spezialisierungen.',
-      steps: [
-        'Knoten besitzen 1–5 Ränge. Jeder Rang verbraucht genau einen Talentpunkt.',
-        'Höhere Knoten verlangen genügend investierte Punkte im selben Zweig und einen bestimmten Vorgängerrang.',
-        'Verschlinger stärkt den Herrscher und Seelenbeute, Herrschaft Armeen und Logistik, Arkana Magie und Forschung.',
-        'Einzelne Punkte können gegen Gold zurückerstattet werden, solange dadurch kein abhängiger Knoten ungültig wird.',
-        'Der Zuschauer-Modus verteilt freie Talentpunkte automatisch.'
-      ] }
-  };
+  var help = root.GameDataTables.help;
 
   // ---------- Nachbearbeitung: Basiswerte & Lookups ----------
   var byId = {};
