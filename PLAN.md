@@ -186,7 +186,13 @@ Phase 23 – Fehlende Grafik-Assets (Bildgenerierung erforderlich)
 - **Illustrierte Kartengrafik:** Hintergrundbild für die Abenteuer-/Umgebungskarte (Karte-Tab), damit sie über das (in Phase 19 verschönerte) Knoten-Board hinaus wie eine echte gezeichnete Landkarte wirkt – analog zum Desktop-Reichspanorama `assets/tempest-kingdom-desktop.png`.
 - **Workflow:** PNG per Built-in-Imagegen erzeugen → mit `dev/remove-chroma.js` transparent stellen → in `assets/` ablegen und in Beschwörung/Karten/Armeen verdrahten (wie `creature-sprites.png`).
 - **Hinweis:** erfordert ein Bildgenerierungs-Tool; in der reinen Code-Umgebung (Claude Code, ohne Imagegen/Netzzugang) nicht erzeugbar – Assets müssen extern beigesteuert werden.
+
+Phase 24 - Simulationen / tests sollten mehr tiefe haben. Nicht immer nur die selben einheiten / skills benutzen. Mehr varianz oder randomness.
  
+Phase 25 - Brain storm Wie kriegen wir eine Graphik wie Heroes of might & magic olden era hin?
+
+Phase 26 installiere UE 5.8 MCP
+
 ### Dateien
 - Spiel: `index.html`, `style.css`, `js/{data,state,systems,ui,main}.js` (offline-/`file://`-tauglich).
 - Dev-Tests (nicht Teil des Spiels): `dev/{sim,domtest,playthrough}.test.js`, `dev/balance.js` und `dev/shots.js`.
