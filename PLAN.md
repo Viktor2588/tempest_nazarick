@@ -18,7 +18,7 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - **Speichern:** Auto-Save + manuell über `localStorage` (versioniertes Schema, Reset-Funktion).
 
 ## Enwticklung
-- Jede Phase unter Status / Fortschritt  sollte  in einem git worktree abgearbeitet werden
+- Jede Phase unter Status / Fortschritt  sollte  in einem git worktree abgearbeitet werden. Bitte  kennzeichne eine Phase wenn du  diese gerade bearbeitest. Wenn  du  diesen plan liest,  nehmen nur Phasen die nicht in bearbeitung sind  /  in progress. 
 
 ## Architektur / Dateien (offline-fähig, klassische Scripts, Namensraum `Game`)
 - `index.html` – Grundgerüst, Ressourcenleiste oben, Tab-Container, untere Navigation.
