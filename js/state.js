@@ -327,30 +327,65 @@
     catch (e) { return false; }
   }
 
-  function save(state) {
+  // Speichert und meldet den Grund eines Fehlschlags (z. B. volles localStorage).
+  function saveResult(state) {
     state.lastSaved = Date.now();
     state.version = VERSION;
-    if (!hasStorage()) return false;
+    if (!hasStorage()) return { ok: false, reason: 'unavailable' };
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-      return true;
-    } catch (e) { return false; }
+      return { ok: true };
+    } catch (e) {
+      var quota = !!(e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014));
+      return { ok: false, reason: quota ? 'quota' : 'error' };
+    }
   }
 
-  function load() {
-    if (!hasStorage()) return null;
+  function save(state) { return saveResult(state).ok; }
+
+  // Lädt und unterscheidet "kein Stand" von "korrupter Stand".
+  function loadResult() {
+    if (!hasStorage()) return { state: null, error: null };
+    var raw = null;
     try {
-      var raw = localStorage.getItem(SAVE_KEY);
+      raw = localStorage.getItem(SAVE_KEY);
       var legacy = false;
       if (!raw) { raw = localStorage.getItem(LEGACY_SAVE_KEY); legacy = !!raw; }
-      if (!raw) return null;
+      if (!raw) return { state: null, error: null };
       var state = normalize(JSON.parse(raw));
       if (legacy) {
         localStorage.setItem(SAVE_KEY, JSON.stringify(state));
         localStorage.removeItem(LEGACY_SAVE_KEY);
       }
-      return state;
-    } catch (e) { return null; }
+      return { state: state, error: null };
+    } catch (e) {
+      // Korrupten Rohstand separat sichern, statt ihn still zu verlieren.
+      try { if (raw) localStorage.setItem(SAVE_KEY + '_corrupt', raw); } catch (e2) {}
+      return { state: null, error: 'corrupt' };
+    }
+  }
+
+  function load() { return loadResult().state; }
+
+  // Exportiert den Spielstand als JSON-Text (Backup / Gerätewechsel).
+  function exportSave(state) {
+    state.version = VERSION;
+    return JSON.stringify(state);
+  }
+
+  // Importiert einen exportierten/gespeicherten Spielstand aus Text.
+  function importSave(text) {
+    var parsed;
+    try { parsed = JSON.parse(text); }
+    catch (e) { return { ok: false, reason: 'Ungültige Datei – kein gültiges JSON.' }; }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { ok: false, reason: 'Ungültiger Spielstand – kein Objekt.' };
+    }
+    var state;
+    try { state = normalize(parsed); }
+    catch (e) { return { ok: false, reason: 'Spielstand konnte nicht gelesen werden.' }; }
+    save(state); // best effort persistieren
+    return { ok: true, state: state };
   }
 
   function reset() {
@@ -368,7 +403,11 @@
     newCreature: newCreature,
     nextUid: nextUid,
     save: save,
+    saveResult: saveResult,
     load: load,
+    loadResult: loadResult,
+    exportSave: exportSave,
+    importSave: importSave,
     reset: reset
   };
 })();

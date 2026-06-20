@@ -1,0 +1,15 @@
+{
+  "name": "Tempest — Königreich der Monster",
+  "short_name": "Tempest",
+  "description": "Königreich-Builder im Universum von That Time I Got Reincarnated as a Slime.",
+  "lang": "de",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e0b1a",
+  "theme_color": "#0e0b1a",
+  "icons": [
+    { "src": "icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}

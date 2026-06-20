@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#0e0b1a">
   <meta name="description" content="Tempest — ein Königreich-Builder im Universum von That Time I Got Reincarnated as a Slime.">
   <title>Tempest — Königreich der Monster</title>
+  <link rel="icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,5 +33,14 @@
   <!-- Darstellung -->
   <script src="js/ui.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // PWA: Service Worker nur unter http(s) registrieren – niemals unter file://
+    // (dort nicht unterstützt) und nur, wenn die API vorhanden ist (z. B. nicht in jsdom).
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>
