@@ -2297,6 +2297,39 @@
       });
       content.appendChild(stages);
 
+      // Spielstand-Sicherung (Export/Import) — Phase 30
+      content.appendChild(el('hr', { class: 'sep' }));
+      content.appendChild(this.secLabel('Spielstand-Sicherung'));
+      content.appendChild(el('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, [
+        btn('💾 Exportieren', function () {
+          try {
+            var blob = new Blob([GST.exportSave(s)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = 'tempest-spielstand.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast('💾 Spielstand als Datei exportiert.', 'gold');
+          } catch (e) { toast('Export fehlgeschlagen.', 'bad'); }
+        }, { small: true }),
+        btn('📂 Importieren', function () {
+          var input = document.createElement('input');
+          input.type = 'file'; input.accept = 'application/json,.json';
+          input.onchange = function () {
+            var file = input.files && input.files[0]; if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function () {
+              var res = GST.importSave(String(reader.result));
+              if (!res.ok) { toast('Import fehlgeschlagen: ' + res.reason, 'bad'); return; }
+              toast('📂 Spielstand importiert – wird geladen …', 'gold');
+              setTimeout(function () { window.location.reload(); }, 400);
+            };
+            reader.readAsText(file);
+          };
+          input.click();
+        }, { small: true })
+      ]));
+
       // Reset
       content.appendChild(el('hr', { class: 'sep' }));
       content.appendChild(btn('🗑 Spielstand zurücksetzen', function () {

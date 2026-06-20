@@ -219,7 +219,7 @@ Phase 27 – Code-Architektur: Monolithen modularisieren  ⏸ ZURÜCKGESTELLT (k
 - Ziel: Balance-/Content-Heuristiken als echte `bun test`-Assertions — Rang-Bänder, Regions-/Echo-Monotonie, Talent-Bonus-Summen, Schmiede-Aufwertungskurven, vollständige `data.js`-Querverweise. Läuft in CI (Phase 28).
 - Nutzen: Balance- und Datenfehler scheitern automatisch statt unbemerkt durchzurutschen.
 
-[x] Phase 30 – Save-Robustheit: Export/Import + Quota-/Korruptions-Schutz  (umgesetzt 2026-06-20: `exportSave`/`importSave`, `saveResult`/`loadResult` mit Quota-/Korruptionserkennung in state.js + `dev/save.test.js`; in-game Export/Import-Button als kleiner UI-Folgeschritt offen)
+[x] Phase 30 – Save-Robustheit: Export/Import + Quota-/Korruptions-Schutz  (umgesetzt 2026-06-20: `exportSave`/`importSave`, `saveResult`/`loadResult` mit Quota-/Korruptionserkennung in state.js + `dev/save.test.js`; in-game Export/Import-Button im Herrscher-Modal)
 - Befund: `state.js` kapselt save/load in try/catch, **verschluckt Fehler aber still** (`return false`); kein Backup/Export; bei vollem oder korruptem `localStorage` droht stiller Verlust. Schema ist bereits v8 mit `normalize`-Migration.
 - Ziel: manueller Export/Import des Spielstands (JSON-Datei bzw. Clipboard) als Backup & Gerätewechsel; bei `QuotaExceeded`/Parse-Fehler klare Rückmeldung + Recovery (letzter guter Stand / Reset-Angebot); leichte Schema-Validierung beim Laden.
 - Nutzen: kein stiller Datenverlust; Spielstände mitnehmbar zwischen Geräten/Browsern.
