@@ -156,11 +156,12 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - **Mobile bewusst erhalten:** Unterhalb 1100 px bleibt die bewährte daumenfreundliche Tab-/Kartenansicht vollständig funktionsfähig; kein Engine-Wechsel und keine Aufgabe von Offline-/`file://`-Betrieb oder Save-Kompatibilität.
 - **Visuelle Regression:** Screenshot-Suite auf 20 Aufnahmen erweitert (13 Mobile, 7 Desktop bei 1440×900), zusätzlicher Überbreiten-Check bei 1366×768.
 
-- Phase 19 **inprogress** Zuschauermodus in die top bar aufnehmen
-- Fehlende Kreaturen assets hinzufügen
-- Karte der reichsübsericht gefällt mir sehr gut, wir sollten diese Interaktiv gestalten das anstelle von icons, die gebäude in der Karte hervorgehoben werden.
-- Umgebungskarte sieht leider immer noch nicht so schön aus.
-- vorspulen funktion sollte 5min sein nicht 30s
+[x] **Phase 19 – UI-Verbesserungen (2026-06-20)**
+- Zuschauer-Modus-Toggle in der Top-Bar (👁️ oben rechts, gold = aktiv), zusätzlich zur Übersichts-Karte.
+- Vorspulen-Funktion von 30 s auf 5 min erhöht.
+- Reichsübersichts-Karte interaktiv: schwebende Icon-Chips → leuchtende Gebäude-Highlights mit pulsierendem Marker und Hover-Namensschild über dem Bauwerk.
+- Umgebungs-/Abenteuerkarte als Heroes-artiges Board überarbeitet: dunkles Brett mit Punkt-Textur, Vignette und Bronzerahmen, klar gezeichnete Wege (runde Enden, grün/bronze/vernebelt), kräftigere Tokens, **Gold-Glow auf erreichbaren Feldern**, dichterer Nebel über Gesperrtem, 2-zeilige (nicht mehr abgeschnittene) Labels.
+- Offen: fehlende Kreaturen-Assets → ausgelagert nach **Phase 23** (Bildgenerierung erforderlich, in der Code-Umgebung nicht erzeugbar).
 
 [x] **Phase 20 – Herrscher-Talentbaum im Stil von Last Epoch (2026-06-20)**
 - Drei klar getrennte Spezialisierungen **Verschlinger, Herrschaft und Arkana** mit 15 Knoten, 1–5 Rängen, sichtbaren Pfadverbindungen, Zweigschwellen, Vorgängervoraussetzungen und Schlussknoten.
@@ -173,6 +174,12 @@ Phase 21
 - Überarbeitung der Schmiede last epoch, Es sollte  vermieden werden das das spiel 100derte von ausrüstungsgegenstände hat. besser  ne  handvoll die man aufwärten kann. sie sollte Rezepte freischalten, vorhanden Ausrüstung aufwärten können wenn man bestimmte seltene materialien findet um so die qualtität eine ausrüstung zu verbessern.
 
 -Phase 22 Umgebungen  /  territorien  sollten wie  echos  von last epoch sein  prozuderal  generierte  maps mit unterschiedlichen belohnungs & stärke  der gegener affixen.
+
+Phase 23 – Fehlende Grafik-Assets (Bildgenerierung erforderlich)
+- **Kreaturen-Sprites nachliefern:** Das Sprite-Sheet `assets/creature-sprites.png` deckt bislang nur Schleim, Goblin, Wolf, Oger, Echsenmensch und Ork ab. Alle übrigen Linien (u. a. Greif/Harpyie, Geist/Fee, Baumhirte/Pflanze, Phönix, Kobold, Hasenmensch, Tengu, Meervolk, Skelett/Lich, Imp/Dämon, Vampir, Golem, Insekten, Drachen) nutzen nur einen Emoji-Fallback und brauchen erkennbare Portraits.
+- **Illustrierte Kartengrafik:** Hintergrundbild für die Abenteuer-/Umgebungskarte (Karte-Tab), damit sie über das (in Phase 19 verschönerte) Knoten-Board hinaus wie eine echte gezeichnete Landkarte wirkt – analog zum Desktop-Reichspanorama `assets/tempest-kingdom-desktop.png`.
+- **Workflow:** PNG per Built-in-Imagegen erzeugen → mit `dev/remove-chroma.js` transparent stellen → in `assets/` ablegen und in Beschwörung/Karten/Armeen verdrahten (wie `creature-sprites.png`).
+- **Hinweis:** erfordert ein Bildgenerierungs-Tool; in der reinen Code-Umgebung (Claude Code, ohne Imagegen/Netzzugang) nicht erzeugbar – Assets müssen extern beigesteuert werden.
  
 ### Dateien
 - Spiel: `index.html`, `style.css`, `js/{data,state,systems,ui,main}.js` (offline-/`file://`-tauglich).

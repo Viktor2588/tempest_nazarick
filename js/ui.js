@@ -925,6 +925,15 @@
           });
         });
         world.appendChild(paths);
+        // Felder, die eine Armee mit Bewegungspunkten von ihrer Position aus erreichen kann
+        var reachable = {};
+        (s.armyGroups || []).forEach(function (g) {
+          if ((g.movement || 0) <= 0) return;
+          var posNode = SYS.strategicNode(g.position);
+          ((posNode && posNode.links) || []).forEach(function (tid) {
+            if (SYS.strategicNodeUnlocked(s, tid)) reachable[tid] = true;
+          });
+        });
         GD.strategicNodes.forEach(function (node) {
           var region = node.kind === 'region' ? GD.region(node.id) : null;
           var site = node.siteId ? GD.strategicSite(node.siteId) : null;
@@ -937,7 +946,7 @@
           else if (site && unlocked) status = 'Wache ' + fmt(site.guard);
           else if (!unlocked) status = 'Nebel';
           world.appendChild(el('div', {
-            class: 'map-node map-node-' + (node.kind || 'region') + (claimed ? ' claimed' : '') + (!unlocked ? ' locked' : '') + (site && !claimed && unlocked ? ' discoverable' : ''),
+            class: 'map-node map-node-' + (node.kind || 'region') + (claimed ? ' claimed' : '') + (!unlocked ? ' locked' : '') + (site && !claimed && unlocked ? ' discoverable' : '') + (reachable[node.id] ? ' reachable' : ''),
             style: 'left:' + node.x + '%;top:' + node.y + '%',
             title: SYS.strategicNodeName(node),
             onclick: site ? function () { self.openMapSiteModal(node); } : null
