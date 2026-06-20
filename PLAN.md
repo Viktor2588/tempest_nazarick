@@ -224,7 +224,7 @@ Phase 27 – Code-Architektur: Monolithen modularisieren  ⏸ ZURÜCKGESTELLT (k
 - Ziel: manueller Export/Import des Spielstands (JSON-Datei bzw. Clipboard) als Backup & Gerätewechsel; bei `QuotaExceeded`/Parse-Fehler klare Rückmeldung + Recovery (letzter guter Stand / Reset-Angebot); leichte Schema-Validierung beim Laden.
 - Nutzen: kein stiller Datenverlust; Spielstände mitnehmbar zwischen Geräten/Browsern.
 
-Phase 31 – Performance: Tick-/Auto-/Offline-Profiling & Caching  ⏸ ZURÜCKGESTELLT (berührt Hotpaths in systems.js → wie Phase 27 erst nach Ruhen der Parallelarbeit)
+[x] Phase 31 – Performance: Tick-/Auto-/Offline-Profiling & Caching  (umgesetzt 2026-06-20: gemessen ~7 µs/Tick ≈ 143k Ticks/s, computeBonuses ~2,5 µs → bereits sehr schnell; **bewusst kein Cache** (verfrühte Optimierung mit Staleness-Risiko), stattdessen Performance-Guard `dev/perf.test.js` gegen künftige Regressionen)
 - Befund: `production()`/`computeBonuses()` werden pro Tick neu berechnet; Vorspulen = 300 Ticks, Offline-Fortschritt potenziell tausende; Bestand (Stapel, Echos, Talente) wächst.
 - Ziel: Hotpaths messen; Bonus-/Produktionsberechnung memoisieren und gezielt invalidieren statt jedes Tick komplett neu; Vorspulen/Offline gebündelt rechnen; Tick-Marathon als Benchmark im Test.
 - Nutzen: flüssiger auf Handys, schnelleres Vorspulen, weniger CPU-/Akkuverbrauch.
