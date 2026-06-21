@@ -210,7 +210,7 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 
 Phase 26 installiere UE 5.8 MCP
 
-Phase 33 – Canvas-Renderer & Kampf-Vertical-Slice (Jura-Biom, 6 animierte Einheitenlinien)
+[ ] **Phase 33 – Canvas-Renderer & Kampf-Vertical-Slice (in Bearbeitung, 2026-06-21)** — Jura-Biom, Canvas-Grundlage und 6 animierte Einheitenlinien.
 
 Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt (Ortsobjekte, Nebelmaske, animierte Armeen)
 
