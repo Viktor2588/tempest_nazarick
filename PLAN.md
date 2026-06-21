@@ -257,6 +257,8 @@ Phase 36 – Reichspanorama und Management-UI materialisieren
 - **Architektur/Save/Offline:** DOM-freies `systems-skirmish.js` und getrenntes `ui-action.js`; Save-Schema **v11** normalisiert laufende Gefechte, PWA-App-Shell **v6** cached beide Module. Handbuch und README nachgezogen.
 - **Verifikation:** `bun test` → **50/50** grün (neu: 8 Sturmeinsatz-Tests; DOM-Test 71 Checks), `bun run balance` unverändert sauber. Echter Chromium-Smoke-Test unter `file://` bei 390×844 und 1440×900: vier Aktionen bedienbar, kein Browserfehler und keine horizontale Überbreite; UI visuell auf beiden Größen geprüft.
 
+[~] **Phase 41 – Kampfhaltungen für Sturmeinsätze (in Bearbeitung)** — eine aktive Vor-Kampf-Entscheidung vertieft die Action-Schleife aus Phase 40: vor jedem Einsatz wählt man eine Haltung mit echtem Trade-off (Berserker/Wächter/Arkanist neben der neutralen Ausgewogen-Haltung). Isoliert in `systems-skirmish.js`/`ui-action.js`, neutraler Default reproduziert das alte Verhalten.
+
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.
 
