@@ -106,12 +106,15 @@ s.buildings.schmiede = 2; var rc = SYS.craft(s, 'magistahlklinge');
 tryRender('Ausrüst-Modal', function () { window.GameUI.openEquipModal(rc.item); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
 tryRender('Expeditions-Modal', function () { window.GameUI.openExpeditionModal(window.GameData.region('wald')); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
 tryRender('Herrscher-Modal', function () { window.GameUI.openRulerModal(); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
-tryRender('Erfolge & Statistik-Modal', function () {
+tryRender('Kompendium-Modal (Erfolge/Statistik/Bestiarium)', function () {
   window.GameUI.openCodexModal('erfolge');
   if (!document.querySelector('.modal.codex-modal')) throw new Error('kein Codex-Modal');
   if (document.querySelectorAll('#modal-root .ach-card').length !== window.GameAchievements.total()) throw new Error('Erfolgskarten fehlen');
   window.GameUI.openCodexModal('statistik');
   if (!document.querySelector('#modal-root .stat-cell')) throw new Error('keine Statistikzellen');
+  window.GameUI.openCodexModal('bestiarium');
+  if (document.querySelectorAll('#modal-root .beast-card').length !== window.GameData.creatures.length) throw new Error('Bestiarium unvollständig');
+  if (!document.querySelector('#modal-root .beast-card.locked')) throw new Error('keine gesperrten Formen markiert');
   document.querySelector('.modal-close').click();
 });
 tryRender('Last-Epoch-artiger Herrscher-Talentbaum', function () {

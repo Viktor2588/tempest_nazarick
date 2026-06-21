@@ -479,7 +479,7 @@
               self.commit();
             }, { small: true, cls: watchDetailed ? 'btn-gold' : '' }),
             btn('⏩ Vorspulen 5 min', function () { self.fastForward(300); }, { small: true }),
-            btn('🏆 Erfolge & Statistik', function () { if (self.openCodexModal) self.openCodexModal(); }, { small: true })
+            btn('📖 Kompendium', function () { if (self.openCodexModal) self.openCodexModal(); }, { small: true })
           ]),
           watchDetailed ? el('div', { class: 'card-desc', text: 'Einzelschritte erscheinen als kurzer Dialog; der Berater pausiert jeweils 3 Sekunden.' }) : null
         ]);

@@ -1,7 +1,8 @@
 /* ============================================================
-   ui-progress.js — Erfolge & Reichsstatistik (Modal).
+   ui-progress.js — Kompendium: Erfolge, Reichsstatistik & Bestiarium.
    Erweitert GameUI nach ui.js; klassisches Script ohne Build.
-   Liest GameAchievements + state.metrics; verändert keinen Zustand.
+   Liest GameAchievements + state.metrics + state.seenSpecies;
+   verändert keinen Zustand.
    ============================================================ */
 (function () {
   'use strict';
@@ -9,7 +10,7 @@
   if (!UI || !H) throw new Error('ui-progress.js muss nach ui.js geladen werden');
   var GD = window.GameData;
   var el = H.el, fmt = H.fmt, bar = H.bar, btn = H.btn;
-  var openModal = H.openModal, costText = H.costText;
+  var openModal = H.openModal, costText = H.costText, creatureArt = H.creatureArt, rankBadge = H.rankBadge, statsLine = H.statsLine;
 
   function ACH() { return window.GameAchievements; }
 
@@ -133,8 +134,83 @@
     return box;
   }
 
+  // ---------- Bestiarium ----------
+  function reqText(req) {
+    if (!req) return '';
+    var parts = [];
+    if (req.named) parts.push('benannt');
+    if (req.level) parts.push('Lv ' + req.level);
+    if (req.seelen) parts.push(req.seelen + ' Seelen');
+    if (req.herrscherStufe) parts.push('Herrscher-Stufe ' + req.herrscherStufe);
+    return parts.join(', ');
+  }
+
+  // Kreaturen nach Linie gruppieren, je Linie nach Rang sortiert.
+  function speciesByLine() {
+    var lines = [], byLine = {};
+    GD.creatures.forEach(function (sp) {
+      if (!byLine[sp.line]) { byLine[sp.line] = []; lines.push(sp.line); }
+      byLine[sp.line].push(sp);
+    });
+    lines.forEach(function (ln) { byLine[ln].sort(function (a, b) { return GD.rankIndex(a.rank) - GD.rankIndex(b.rank); }); });
+    return { lines: lines, byLine: byLine };
+  }
+
+  function seenSpecies(s, id) { return (s.seenSpecies || []).indexOf(id) >= 0; }
+
+  function beastCard(s, sp) {
+    if (!seenSpecies(s, sp.id)) {
+      return el('div', { class: 'beast-card locked' }, [
+        el('div', { class: 'beast-head' }, [
+          el('div', { class: 'card-emoji', text: '❔' }),
+          el('div', { class: 'beast-id' }, [
+            el('div', { class: 'beast-name', text: '???' }),
+            el('div', { class: 'beast-sub' }, [rankBadge(sp.rank)])
+          ])
+        ])
+      ]);
+    }
+    var sk = sp.skill ? GD.skill(sp.skill) : null;
+    var evo = (sp.evolvesTo || []).map(function (e) {
+      var to = GD.creature(e.to), rt = reqText(e.req);
+      return el('div', { class: 'beast-evo', text: '→ ' + (to ? to.name : e.to) + (rt ? ' (' + rt + ')' : '') });
+    });
+    return el('div', { class: 'beast-card' }, [
+      el('div', { class: 'beast-head' }, [
+        creatureArt(sp, 'beast-art'),
+        el('div', { class: 'beast-id' }, [
+          el('div', { class: 'beast-name', text: sp.name }),
+          el('div', { class: 'beast-sub' }, [rankBadge(sp.rank), el('span', { class: 'pill', text: sp.role })])
+        ])
+      ]),
+      statsLine(sp.base),
+      sk ? el('div', { class: 'beast-skill', text: '✨ ' + sk.name }) : null,
+      sp.desc ? el('div', { class: 'beast-desc', text: sp.desc }) : null,
+      evo.length ? el('div', { class: 'beast-evos' }, evo) : null
+    ]);
+  }
+
+  function buildBestiary(s) {
+    var box = el('div', { class: 'codex-beast' });
+    var grouped = speciesByLine(), total = GD.creatures.length;
+    var seenCount = GD.creatures.filter(function (sp) { return seenSpecies(s, sp.id); }).length;
+    box.appendChild(el('div', { class: 'codex-summary' }, [
+      bar(seenCount / total, 'gold'),
+      el('div', { class: 'bar-label', text: '📖 ' + seenCount + ' / ' + total + ' Formen entdeckt' })
+    ]));
+    grouped.lines.forEach(function (ln) {
+      var forms = grouped.byLine[ln];
+      var seen = forms.filter(function (sp) { return seenSpecies(s, sp.id); }).length;
+      box.appendChild(el('div', { class: 'section-label', text: ln + ' · ' + seen + '/' + forms.length }));
+      var grid = el('div', { class: 'beast-grid' });
+      forms.forEach(function (sp) { grid.appendChild(beastCard(s, sp)); });
+      box.appendChild(grid);
+    });
+    return box;
+  }
+
   Object.assign(UI, {
-    // Modal mit zwei Unter-Ansichten: Erfolge und Statistik.
+    // Kompendium-Modal mit drei Unter-Ansichten: Erfolge, Statistik, Bestiarium.
     openCodexModal: function (tab) {
       var self = this, s = this.state;
       if (!ACH()) return;
@@ -145,10 +221,13 @@
       }
       body.appendChild(el('div', { class: 'codex-tabs' }, [
         tabBtn('erfolge', '🏆 Erfolge'),
-        tabBtn('statistik', '📊 Statistik')
+        tabBtn('statistik', '📊 Statistik'),
+        tabBtn('bestiarium', '📖 Bestiarium')
       ]));
-      body.appendChild(this._codexTab === 'statistik' ? buildStats(s) : buildAchievements(s));
-      openModal('Erfolge & Statistik', body, '🏆', 'codex-modal');
+      var view = this._codexTab === 'statistik' ? buildStats(s)
+        : (this._codexTab === 'bestiarium' ? buildBestiary(s) : buildAchievements(s));
+      body.appendChild(view);
+      openModal('Kompendium', body, '📖', 'codex-modal');
     }
   });
 })();

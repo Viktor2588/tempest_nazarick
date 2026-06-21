@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 9;
+  var VERSION = 10;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -120,6 +120,7 @@
       seenUnlocks: [],
       questProgress: 0,
       achievements: [],
+      seenSpecies: [],
       settings: { watch: false, watchDetailed: false, watchCooldownUntil: 0, watchHistory: [], effects: 'full' },
       log: [],
       metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, seelenGesamt: 0 }
@@ -128,6 +129,7 @@
     var goblins = newCreature(s, 'goblin');
     goblins.count = 2;
     s.creatures.push(slime, goblins);
+    s.seenSpecies = ['schleim', 'goblin'];
     s.armyGroups[0].troops = { schleim: 1, goblin: 2 };
     s.log.push({ t: 0, text: 'Du erwachst als Schleim am Großen Jura-Wald. Vereine die Monster und errichte Tempest!', kind: 'gold' });
     return s;
@@ -211,6 +213,11 @@
     if (root.GameAchievements) {
       s.achievements = s.achievements.filter(function (id, i, a) { return root.GameAchievements.get(id) && a.indexOf(id) === i; });
     }
+    // Bestiarium-Fortschritt: aktuell gehaltene Spezies gelten als entdeckt,
+    // damit auch Alt-Spielstände einen gefüllten Zähler erhalten.
+    if (!Array.isArray(s.seenSpecies)) s.seenSpecies = [];
+    (s.creatures || []).forEach(function (c) { if (c && c.speciesId && s.seenSpecies.indexOf(c.speciesId) < 0) s.seenSpecies.push(c.speciesId); });
+    s.seenSpecies = s.seenSpecies.filter(function (id, i, a) { return !!GD().creature(id) && a.indexOf(id) === i; });
     if (!Array.isArray(s.learnedFieldMagic)) s.learnedFieldMagic = [];
     s.learnedFieldMagic = s.learnedFieldMagic.filter(function (id, i, a) { return !!GD().fieldSpell(id) && a.indexOf(id) === i; });
     if (!s.adventureMagicCooldowns || typeof s.adventureMagicCooldowns !== 'object') s.adventureMagicCooldowns = {};

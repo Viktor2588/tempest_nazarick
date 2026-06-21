@@ -382,8 +382,18 @@
     return { rates: rates, grossNahrung: grossNahrung, consumption: consumption, hunger: hunger, bonuses: b };
   }
 
+  // Bestiarium: aktuell gehaltene Spezies als entdeckt vormerken (Phase 38).
+  function recordSeenSpecies(state) {
+    if (!Array.isArray(state.seenSpecies)) state.seenSpecies = [];
+    for (var i = 0; i < state.creatures.length; i++) {
+      var id = state.creatures[i].speciesId;
+      if (id && state.seenSpecies.indexOf(id) < 0) state.seenSpecies.push(id);
+    }
+  }
+
   function tick(state) {
     state.tick++;
+    recordSeenSpecies(state);
     var mapRefresh = stepArmyMap(state);
     if (echoUnlocked(state)) ensureEchoMap(state);
     var p = production(state);
@@ -2626,7 +2636,7 @@
     MAP_DAY_TICKS: MAP_DAY_TICKS, MAX_TROOP_TYPES: MAX_TROOP_TYPES,
     RULER_ARMY_ID: RULER_ARMY_ID, MAX_NAMED_CREATURES: MAX_NAMED_CREATURES,
     QUESTS: QUESTS, activeQuest: activeQuest, activeQuestIndex: activeQuestIndex, questCount: questCount,
-    checkQuests: checkQuests, syncQuests: syncQuests,
+    checkQuests: checkQuests, syncQuests: syncQuests, recordSeenSpecies: recordSeenSpecies,
     FEATURES: FEATURES, BUILDING_UNLOCK: BUILDING_UNLOCK,
     featureUnlocked: featureUnlocked, featureHint: featureHint, buildingUnlocked: buildingUnlocked, buildingHint: buildingHint,
     tabUnlocked: tabUnlocked, currentUnlockSet: currentUnlockSet, syncUnlocks: syncUnlocks, collectNewUnlocks: collectNewUnlocks,
