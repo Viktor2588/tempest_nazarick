@@ -195,7 +195,12 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - **Durchgängige UI-Verdrahtung:** Beschwörung, Kreaturenkarten, Armeeauswahl, Expeditionen und Anführerportraits verwenden beide Atlanten responsiv; CSS-Crops decken alle Reihen und Spalten ohne neue Laufzeitabhängigkeit ab.
 - **Offline & Regression:** Sämtliche PNGs liegen lokal in `assets/`; DOM-Test prüft alle 20 Sprite-Klassen. Separate Chromium-Abnahmen zeigen die neuen Portraits bei 390×844 und die illustrierte Karte bei 1440×900.
 
-Phase 24 - Simulationen / tests sollten mehr tiefe haben. Nicht immer nur die selben einheiten / skills benutzen. Mehr varianz oder randomness.
+[x] **Phase 24 – Tiefere Simulationen mit reproduzierbarer Varianz (2026-06-21)**
+- 12 vollständig seed-gesteuerte Reichssimulationen kontrollieren auch das von der Spiellogik verwendete `Math.random`; jeder Fehlerpfad ist damit reproduzierbar.
+- Messbare Abdeckungsziele verhindern monotone Scheinvarianz: mindestens 16 Kreaturenlinien, 20 Spezies, 6 Skills, alle 7 Jobs, alle 3 Aspekte und mindestens 8 unterschiedliche Berateraktionen.
+- Eine taktische Szenariomatrix spielt die stärkste Form jeder der 20 Kreaturenlinien durch alle 10 Regionen und 3 Risikostufen; alle 8 Kampfaktionen, Statuswirkungen, Bewegung, Warten, Siege und Niederlagen werden abgedeckt.
+- Tiefe Invarianten prüfen verschachtelte Zustände auf `NaN`/`Infinity`, eindeutige IDs, gültige Spezies/Skills/Jobs/Truppen, korrekte LP/MP/Positionen, kollisionsfreie Rasterfelder sowie Save-Roundtrips normaler und laufender Kampfzustände.
+- Verifikation: `bun test` → 14/14 Tests grün (inkl. 238 Logik-, 68 DOM- und 61 Durchspiel-Checks).
  
 Phase 25 - Brain storm Wie kriegen wir eine Graphik wie Heroes of might & magic olden era hin?
 
