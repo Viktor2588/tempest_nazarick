@@ -442,6 +442,8 @@
           ])
         ]));
 
+        // Aktive Belagerungsabwehr bei drohendem Raid (Phase 43, aus ui-siege.js).
+        if (self.buildSiegeCard) { var siegeCard = self.buildSiegeCard(); if (siegeCard) box.appendChild(siegeCard); }
         // Schnelle aktive Gefechtsschleife (Phase 40, aus ui-action.js).
         if (self.buildSkirmishCard) box.appendChild(self.buildSkirmishCard());
 

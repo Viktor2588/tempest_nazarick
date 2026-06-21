@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -167,6 +167,20 @@ tryRender('Sturmeinsatz-Karte und aktives Konter-Gefecht', function () {
   if (!retreat) throw new Error('Rückzug fehlt');
   retreat.click();
   if (s.skirmish.active) throw new Error('Rückzug beendet Einsatz nicht');
+});
+tryRender('Aktive Belagerungsabwehr (Karte + Verteidigung)', function () {
+  s.claimedRegions = s.claimedRegions.length ? s.claimedRegions : ['wald'];
+  s.raid = { rivalId: 'clayron', power: 120, atTick: s.tick + 18, warnTick: s.tick };
+  window.GameUI.activeTab = 'uebersicht'; window.GameUI.render();
+  if (!document.querySelector('#screen .siege-card')) throw new Error('keine Belagerungs-Karte bei drohendem Raid');
+  window.GameUI.openSiegeModal();
+  if (!s.siege.active || !document.querySelector('.modal.siege-modal')) throw new Error('Belagerung nicht gestartet');
+  if (!document.querySelector('#modal-root .action-verstaerken')) throw new Error('Verteidigungsaktion fehlt');
+  document.querySelector('#modal-root .action-verstaerken').click();
+  if (!s.siege.active && !s.siege.lastResult) throw new Error('Aktion ohne Wirkung');
+  // Aufräumen für Folgetests
+  if (s.siege.active) { window.GameSystems.abortSiege(s); }
+  s.raid = null; window.GameUI.activeTab = 'uebersicht'; window.GameUI.render();
 });
 tryRender('Last-Epoch-artiger Herrscher-Talentbaum', function () {
   s.herrscher.level = Math.max(8, s.herrscher.level);

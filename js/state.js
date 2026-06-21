@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 11;
+  var VERSION = 12;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -117,6 +117,7 @@
       activeEvent: null,
       affinity: null,
       skirmish: { active: null, heat: 0, streak: 0, bestCombo: 0, rotation: 0, objectivesCompleted: 0, lastResult: null },
+      siege: { active: null, lastResult: null },
       uidCounter: 0,
       seenUnlocks: [],
       questProgress: 0,
@@ -284,6 +285,23 @@
         sa.log = sa.log.slice(0, 7).map(function (line) { return String(line); });
       }
     } else s.skirmish.active = null;
+    // Belagerung (Phase 43): laufende aktive Verteidigung absichern.
+    if (!s.siege || typeof s.siege !== 'object' || Array.isArray(s.siege)) s.siege = { active: null, lastResult: null };
+    if (!s.siege.lastResult || typeof s.siege.lastResult !== 'object' || Array.isArray(s.siege.lastResult)) s.siege.lastResult = null;
+    if (s.siege.active && typeof s.siege.active === 'object') {
+      var sgn = ['wallHp', 'wallMax', 'rivalRemaining', 'rivalPower', 'round', 'rounds', 'shield'];
+      sgn.forEach(function (k) { s.siege.active[k] = Number(s.siege.active[k]); });
+      if (!s.siege.active.rivalId || !s.raid || sgn.some(function (k) { return !isFinite(s.siege.active[k]); })) s.siege.active = null;
+      else {
+        s.siege.active.round = Math.max(1, Math.floor(s.siege.active.round || 1));
+        s.siege.active.rounds = Math.max(s.siege.active.round, Math.floor(s.siege.active.rounds || 6));
+        s.siege.active.wallMax = Math.max(1, s.siege.active.wallMax);
+        s.siege.active.wallHp = Math.max(0, Math.min(s.siege.active.wallMax, s.siege.active.wallHp));
+        s.siege.active.shield = Math.max(0, Math.floor(s.siege.active.shield || 0));
+        if (!Array.isArray(s.siege.active.log)) s.siege.active.log = [];
+        s.siege.active.log = s.siege.active.log.slice(0, 7).map(function (l) { return String(l); });
+      }
+    } else s.siege.active = null;
     // Alle bekannten Diablo-artigen Positionen ergänzen, ohne alte Ausrüstung zu verlieren.
     [s.herrscher].concat(s.creatures || []).forEach(function (holder) {
       if (!holder.equipment) holder.equipment = {};

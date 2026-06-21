@@ -1943,6 +1943,27 @@ select.btn { text-align: left; min-height: 40px; }
 .skirmish-stance small { font-size: 10.5px; color: var(--text-dim); line-height: 1.25; }
 .skirmish-stance.selected { border-color: var(--accent-2); background: linear-gradient(180deg, rgba(255,180,84,.16), var(--panel-2)); box-shadow: 0 0 0 1px var(--accent-2) inset; }
 
+/* ---------- Aktive Belagerungsabwehr (Phase 43) ---------- */
+.siege-card { border-color: #6f5bd6; background: linear-gradient(120deg, rgba(58,40,122,.32), var(--panel-2) 58%); }
+.siege-card.active { box-shadow: inset 0 0 22px rgba(120,90,255,.14); }
+.siege-versus { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+.siege-side { display: flex; flex-direction: column; gap: 4px; }
+.siege-side small { color: var(--text-mut); font-size: 11px; }
+.siege-side b { font-size: 12px; }
+.siege-meters { display: flex; gap: 16px; align-items: center; margin-bottom: 10px; }
+.siege-meters small { color: var(--text-mut); font-size: 11px; display: block; }
+.siege-shield span { font-size: 14px; letter-spacing: 2px; }
+.siege-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.siege-actions .btn { flex-direction: column; }
+.siege-log { display: flex; flex-direction: column; gap: 3px; max-height: 140px; overflow-y: auto; font-size: 11.5px; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 10px; }
+.siege-foot { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.siege-foot span { font-size: 11px; color: var(--text-mut); }
+.siege-result { text-align: center; }
+.siege-result-icon { font-size: 44px; }
+.siege-result.won h4 { color: var(--good); }
+.siege-result.lost h4 { color: var(--bad); }
+.siege-loot { margin: 8px 0; padding: 8px; border-radius: var(--radius-sm); background: var(--bg-2); border: 1px solid var(--line); font-size: 12px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }

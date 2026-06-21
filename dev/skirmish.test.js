@@ -128,7 +128,7 @@ test("Save-v11-Roundtrip erhält laufenden Einsatz und repariert Defekte", () =>
   SYS.startSkirmish(s, 'grenzalarm');
   SYS.skirmishAction(s, 'block');
   const round = GST.normalize(JSON.parse(JSON.stringify(s)));
-  expect(round.version).toBe(11);
+  expect(round.version).toBe(GST.VERSION);
   expect(round.skirmish.active.missionId).toBe('grenzalarm');
   expect(round.skirmish.active.combo).toBe(1);
 

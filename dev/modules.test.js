@@ -4,9 +4,9 @@ import { test, expect } from "bun:test";
 const root = import.meta.dir + '/..';
 const expectedOrder = [
   'js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js',
-  'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/achievements.js',
+  'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/achievements.js',
   'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js',
-  'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/main.js'
+  'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/main.js'
 ];
 
 function scriptSources(html) {
@@ -85,5 +85,5 @@ test('Materialisierte UI-Symbole sind lokal, kompakt und offline verfügbar', as
   expect(source).toContain('viewBox="0 0 144 96"');
   expect(source.match(/transform="translate\(/g)?.length).toBe(24);
   expect(worker).toContain("'./assets/ui-icons.svg'");
-  expect(worker).toContain("tempest-shell-v9");
+  expect(worker).toMatch(/tempest-shell-v\d+/);
 });

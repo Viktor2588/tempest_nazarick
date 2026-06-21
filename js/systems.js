@@ -439,7 +439,7 @@
     state.expeditions = still;
     // anstehenden Rivalen-Angriff offline auflösen
     var raidResult = null;
-    if (state.raid && state.tick >= state.raid.atTick) raidResult = resolveRaid(state);
+    if (state.raid && state.tick >= state.raid.atTick && !(state.siege && state.siege.active)) raidResult = resolveRaid(state);
     return { ticks: ticks, results: results, production: p, raidResult: raidResult };
   }
 
@@ -2037,7 +2037,9 @@
     var raid = state.raid; if (!raid) return null;
     var rv = GD().rival(raid.rivalId);
     var def = defenseValue(state);
-    var repelled = def >= raid.power;
+    // Aktive Belagerungsabwehr (Phase 43) kann das Ergebnis erzwingen; sonst
+    // entscheidet wie bisher die Verteidigungskraft gegen die Angriffskraft.
+    var repelled = (raid.forcedOutcome != null) ? !!raid.forcedOutcome : (def >= raid.power);
     if (repelled) {
       addResources(state, rv.reward);
       if (!state.rivalProgress) state.rivalProgress = {};
@@ -2056,6 +2058,13 @@
     var result = { rivalId: rv.id, repelled: repelled, power: raid.power, defense: def };
     state.raid = null;
     return result;
+  }
+  // Ergebnis einer aktiven Belagerungsabwehr (Phase 43) anwenden: erzwingt das
+  // Resultat und nutzt sonst dieselbe Beute-/Schadenslogik wie resolveRaid.
+  function resolveActiveDefense(state, won) {
+    if (!state.raid) return null;
+    state.raid.forcedOutcome = !!won;
+    return resolveRaid(state);
   }
   function rivalProgress(state, rivalId) { return (state.rivalProgress && state.rivalProgress[rivalId]) || 0; }
   function isRivalDefeated(state, rivalId) { return (state.rivalsDefeated || []).indexOf(rivalId) >= 0; }
@@ -2099,7 +2108,7 @@
     if (!state.raid) {
       state.threat = (state.threat || 0) + threatRate(state);
       if (state.threat >= THREAT_RAID) { state.threat = 0; warning = scheduleRaid(state); }
-    } else if (state.tick >= state.raid.atTick) {
+    } else if (state.tick >= state.raid.atTick && !(state.siege && state.siege.active)) {
       result = resolveRaid(state);
     }
     return { raidWarning: warning, raidResult: result };
@@ -2710,7 +2719,7 @@
     expeditionPower: expeditionPower, canStartExpedition: canStartExpedition, startExpedition: startExpedition,
     resolveExpedition: resolveExpedition,
     THREAT_RAID: THREAT_RAID, RAID_LEAD: RAID_LEAD, RIVAL_COUNTER_REPELS: RIVAL_COUNTER_REPELS,
-    defenseValue: defenseValue, threatRate: threatRate, scheduleRaid: scheduleRaid, resolveRaid: resolveRaid, stepThreat: stepThreat,
+    defenseValue: defenseValue, threatRate: threatRate, scheduleRaid: scheduleRaid, resolveRaid: resolveRaid, resolveActiveDefense: resolveActiveDefense, stepThreat: stepThreat,
     rivalProgress: rivalProgress, isRivalDefeated: isRivalDefeated, canCounterAttack: canCounterAttack,
     rivalLairPower: rivalLairPower, counterAttackRival: counterAttackRival
   };

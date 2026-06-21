@@ -167,7 +167,7 @@ test('neue Läufe und laufende v11-Altsaves normalisieren abwärtskompatibel', (
   SYS.skirmishAction(current, exactCounter(current));
   const round = GST.normalize(JSON.parse(JSON.stringify(current)));
   const currentStatus = SYS.skirmishStatus(round);
-  expect(round.version).toBe(11);
+  expect(round.version).toBe(GST.VERSION);
   expect(currentStatus.active.profileId).toBe('bestie');
   expect(currentStatus.active.modifierId).toBe('eiserne_reserve');
   expect(currentStatus.active.objectiveId).toBe('perfekte_serie');
