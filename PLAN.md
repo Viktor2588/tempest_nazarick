@@ -208,7 +208,7 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - Konkrete Art Bible, Asset-Spezifikation, 25-MB-Budget, Performance-/Accessibility-Regeln, Risiken und Abnahmekriterien in `GRAPHICS_ROADMAP.md` dokumentiert.
 - Folgeumsetzung in vier vertikalen Schritten vorgeschlagen: Renderer/Kampf-Slice → echte Abenteuerwelt → alle Biome/Kreaturen → Reich/UI-Politur.
 
-Phase 26 installiere UE 5.8 MCP
+[~] **Phase 26 – UE 5.8 MCP installieren (verworfen 2026-06-21)** — widerspricht der Engine-Entscheidung aus Phase 16 (HTML/CSS/JS bleibt Plattform; Offline-/`file://`-Betrieb, Save-Kompatibilität und Testbasis sollen erhalten bleiben) und ist in der reinen Code-Umgebung nicht installierbar. Grafiktiefe wird stattdessen über die Canvas-Roadmap (Phasen 33/34/35/36) verfolgt.
 
 [x] **Phase 33 – Canvas-Renderer & Kampf-Vertical-Slice (2026-06-21)**
 - **Hybride Kampfbühne:** Der bestehende 7×5-Kampf rendert im Browser primär auf einer isometrischen Canvas-Szene; DOM-Befehlsleiste, Initiative, Zielwahl und ein vollständiges 35-Zellen-Fallback bleiben erhalten.
@@ -230,7 +230,12 @@ Phase 35 – Vollständige Biome, Board-Sprites für 20 Linien & Effektatlas
 
 Phase 36 – Reichspanorama und Management-UI materialisieren
 
-[ ] **Phase 37 – Erfolge & Reichsstatistik (in Bearbeitung)** — paralleles Erfolgssystem (getrennt von der linearen Quest-Kette) + sichtbares Statistik-Dashboard für die bereits getrackten `metrics`.
+[x] **Phase 37 – Erfolge & Reichsstatistik (2026-06-21)** — zwei sich ergänzende Systeme, sauber getrennt von der bestehenden linearen Quest-Kette:
+- **Paralleles Erfolgssystem (`js/achievements.js`, DOM-frei):** 42 Erfolge über 5 Kategorien (Reich, Kreaturen, Kampf, Magie & Schmiede, Herrschaft). Bauen auf den bereits gepflegten `state.metrics` + abgeleitetem Zustand auf (Gebäudestufen, Ränge, Level, Echo-Zyklus, göttliche Items, Talente …). Dynamische Ziele leiten sich aus den Spieldaten ab (alle Regionen, höchste Herrscher-Stufe). `evaluate()` läuft pro Tick (auch beim Vorspulen), schaltet erfüllte Erfolge frei, gewährt einmalige Belohnung + Chronik-Eintrag und ist idempotent; `sync()` rückt beim Laden still vor (keine Belohnungsflut für Alt-Spielstände).
+- **Sichtbares Statistik-Dashboard (`js/ui-progress.js`):** Die bisher getrackten, aber nie angezeigten `metrics` erscheinen erstmals — Spielzeit, Seelen gesamt, Beschwörungen, Eliten, Evolutionen/Fusionen, Kampf-/Echo-/Schmiede-Werte, stärkste Kreatur. Eigenes Modal mit Unter-Tabs „🏆 Erfolge" (Kategorien-Grid mit Fortschrittsbalken, Belohnung, ✅/🔒) und „📊 Statistik"; Einstieg über die Übersicht, Freischalt-Toast über `onTick`.
+- **Integration:** Save-Schema **v9** (`state.achievements` + erweiterte `metrics`; `normalize` dedupliziert/bereinigt unbekannte IDs). `tick()` gibt `achievementsUnlocked` zurück. Neues UI-Modul wie `ui-adventure.js` über `GameUIInternal`; Lade-Reihenfolge in index.html, Service-Worker-Cache **v5**, Modul-Guard, jsdom- und sim-Loader nachgezogen.
+- **Nebenbei: vorbestehender Flaky-Test stabilisiert** — `dev/sim.test.js` verglich die Max-Power eines einzelnen Echo-Knotens (±8 % RNG-Varianz → ~1/6 Läufe rot, auch auf `main`). Jetzt Vergleich der Netz-Gesamtkraft (Varianz mittelt sich weg; deterministischer Zyklusfaktor wächst zuverlässig).
+- **Verifikation:** `bun test` → 36/36 Testfälle grün (inkl. neuem `dev/achievements.test.js` mit 8 Checks + Codex-Modal-DOM-Test); volle Suite 6×/sim.test.js 25× ohne Flake; `bun run balance` weiterhin sauber (Echo-Zyklen 1/3/5/10 streng steigend). Headless-Screenshots in dieser Code-Umgebung nicht ausgeführt (Chromium-Libs nicht verfügbar); UI durch jsdom-DOM-Test abgedeckt.
 
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.

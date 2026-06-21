@@ -7,8 +7,10 @@ import "../js/data.js";
 import "../js/state.js";
 import "../js/systems.js";
 import "../js/systems-combat.js";
+import "../js/achievements.js";
 
 var GD = globalThis.GameData, GST = globalThis.GameState, SYS = globalThis.GameSystems;
+var ACH = globalThis.GameAchievements;
 
 var pass = 0, fail = 0, fails = [];
 function ok(cond, msg) { if (cond) { pass++; } else { fail++; fails.push(msg); console.log('  ✗ ' + msg); } }
@@ -606,14 +608,18 @@ while (!SYS.echoBossCompleted(s22) && safety22-- > 0) {
   if (!result22.won) break;
 }
 ok(SYS.echoBossCompleted(s22) && s22.metrics.echoBosses === 1, 'verzweigter Pfad führt bis zum Echo-Kern');
-var oldSeed22 = s22.echoes.seed, oldMaxPower22 = Math.max.apply(null, s22.echoes.nodes.map(function (n) { return n.power; }));
-var next22 = SYS.advanceEchoCycle(s22), newMaxPower22 = Math.max.apply(null, s22.echoes.nodes.map(function (n) { return n.power; }));
-ok(next22.ok && s22.echoes.cycle === 2 && s22.echoes.seed !== oldSeed22 && newMaxPower22 > oldMaxPower22, 'neuer Echo-Zyklus erzeugt ein anderes, stärkeres Netz');
+// Gesamt-Power statt Einzelknoten-Max: pro Knoten gibt es ±8 % RNG-Varianz, daher
+// kann das Max eines einzelnen Knotens kippen. Die Netz-Gesamtkraft mittelt die Varianz
+// über alle Knoten und wächst durch den deterministischen Zyklusfaktor zuverlässig.
+function echoTotalPower(st) { return st.echoes.nodes.reduce(function (sum, n) { return sum + n.power; }, 0); }
+var oldSeed22 = s22.echoes.seed, oldTotalPower22 = echoTotalPower(s22);
+var next22 = SYS.advanceEchoCycle(s22), newTotalPower22 = echoTotalPower(s22);
+ok(next22.ok && s22.echoes.cycle === 2 && s22.echoes.seed !== oldSeed22 && newTotalPower22 > oldTotalPower22, 'neuer Echo-Zyklus erzeugt ein anderes, stärkeres Netz');
 var reroll22 = GST.createDefault(); reroll22.claimedRegions = ['wald', 'hoehlen']; reroll22.resources.wissen = 9999; SYS.ensureEchoMap(reroll22);
 var rerollSeed22 = reroll22.echoes.seed;
 ok(SYS.rerollEchoMap(reroll22).ok && reroll22.echoes.seed !== rerollSeed22, 'unberührtes Netz kann gegen Wissen neu verwoben werden');
 var save22 = GST.normalize(JSON.parse(JSON.stringify(s22)));
-ok(save22.version === 8 && save22.echoes.cycle === 2 && save22.echoes.nodes.length === 12 && save22.echoes.stability > 0, 'Save-v8 erhält Seed, Zyklus, Karte und Echo-Stabilität');
+ok(save22.version === GST.VERSION && save22.echoes.cycle === 2 && save22.echoes.nodes.length === 12 && save22.echoes.stability > 0, 'Save-Migration erhält Seed, Zyklus, Karte und Echo-Stabilität');
 
 console.log('--- Zuschauer-/Auto-Modus (spielt sich selbst) ---');
 var sW = GST.createDefault(); SYS.syncUnlocks(sW);

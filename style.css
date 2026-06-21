@@ -1632,6 +1632,33 @@ select.btn { text-align: left; min-height: 40px; }
   .toast { border-color: #42627c; background: rgba(17,35,52,.96); }
 }
 
+/* ---------- Erfolge & Statistik (Phase 37) ---------- */
+.codex-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.bar.gold > span { background: linear-gradient(90deg, var(--accent-2), #ffe2a6); }
+.bar.good > span { background: linear-gradient(90deg, var(--good), #aef0c4); }
+
+.codex-summary { margin-bottom: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 6px 0 12px; }
+.stat-cell { display: flex; gap: 9px; align-items: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; }
+.stat-ico { font-size: 20px; line-height: 1; }
+.stat-body { min-width: 0; }
+.stat-k { font-size: 11px; color: var(--text-mut); }
+.stat-v { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 6px 0 12px; }
+.ach-card { display: flex; flex-direction: column; gap: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px; opacity: .82; }
+.ach-card.done { opacity: 1; border-color: var(--accent-2); background: linear-gradient(180deg, rgba(255,180,84,.12), var(--panel-2)); }
+.ach-head { display: flex; gap: 9px; align-items: flex-start; }
+.ach-ico { font-size: 22px; line-height: 1; }
+.ach-card:not(.done) .ach-ico { filter: grayscale(.55); opacity: .8; }
+.ach-text { min-width: 0; }
+.ach-title { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-weight: 600; }
+.ach-state { font-size: 13px; }
+.ach-desc { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+.ach-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text-mut); margin-top: 3px; }
+.ach-reward { color: var(--accent-2); }
+@media (min-width: 600px) { .modal.codex-modal { max-width: 760px; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }

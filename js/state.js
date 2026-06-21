@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 8;
+  var VERSION = 9;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -119,9 +119,10 @@
       uidCounter: 0,
       seenUnlocks: [],
       questProgress: 0,
+      achievements: [],
       settings: { watch: false, watchDetailed: false, watchCooldownUntil: 0, watchHistory: [], effects: 'full' },
       log: [],
-      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0 }
+      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, seelenGesamt: 0 }
     };
     var slime = newCreature(s, 'schleim');
     var goblins = newCreature(s, 'goblin');
@@ -206,6 +207,10 @@
       if (c.armyGroupId === undefined) c.armyGroupId = c.named ? null : RULER_ARMY_ID;
     });
     if (!Array.isArray(s.seenUnlocks)) s.seenUnlocks = [];
+    if (!Array.isArray(s.achievements)) s.achievements = [];
+    if (root.GameAchievements) {
+      s.achievements = s.achievements.filter(function (id, i, a) { return root.GameAchievements.get(id) && a.indexOf(id) === i; });
+    }
     if (!Array.isArray(s.learnedFieldMagic)) s.learnedFieldMagic = [];
     s.learnedFieldMagic = s.learnedFieldMagic.filter(function (id, i, a) { return !!GD().fieldSpell(id) && a.indexOf(id) === i; });
     if (!s.adventureMagicCooldowns || typeof s.adventureMagicCooldowns !== 'object') s.adventureMagicCooldowns = {};

@@ -4,9 +4,9 @@ import { test, expect } from "bun:test";
 const root = import.meta.dir + '/..';
 const expectedOrder = [
   'js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js',
-  'js/systems.js', 'js/systems-combat.js',
+  'js/systems.js', 'js/systems-combat.js', 'js/achievements.js',
   'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js',
-  'js/ui.js', 'js/ui-adventure.js', 'js/main.js'
+  'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/main.js'
 ];
 
 function scriptSources(html) {

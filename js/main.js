@@ -25,6 +25,7 @@
   // Bereits erfüllte Freischaltungen & Ziele merken, damit sie nicht als „neu"/„erfüllt" gemeldet werden
   SYS.syncUnlocks(state);
   SYS.syncQuests(state);
+  if (window.GameAchievements) window.GameAchievements.sync(state);
 
   // UI starten; Speichern als Persist-Callback
   UI.start(state, function (s) { GST.save(s); });

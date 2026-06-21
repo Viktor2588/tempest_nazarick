@@ -226,6 +226,9 @@
       if (events && events.questsCompleted && events.questsCompleted.length) {
         events.questsCompleted.forEach(function (q) { toast('🎯 Ziel erfüllt: ' + q.title, 'gold'); });
       }
+      if (events && events.achievementsUnlocked && events.achievementsUnlocked.length) {
+        events.achievementsUnlocked.forEach(function (a) { toast('🏆 Erfolg: ' + a.title, 'gold'); });
+      }
     },
 
     showWatchAction: function (act) {
@@ -475,7 +478,8 @@
               toast(s.settings.watchDetailed ? '🎬 Sichtbare Einzelschritte aktiviert' : '⚡ Schneller Auto-Modus aktiviert', 'gold');
               self.commit();
             }, { small: true, cls: watchDetailed ? 'btn-gold' : '' }),
-            btn('⏩ Vorspulen 5 min', function () { self.fastForward(300); }, { small: true })
+            btn('⏩ Vorspulen 5 min', function () { self.fastForward(300); }, { small: true }),
+            btn('🏆 Erfolge & Statistik', function () { if (self.openCodexModal) self.openCodexModal(); }, { small: true })
           ]),
           watchDetailed ? el('div', { class: 'card-desc', text: 'Einzelschritte erscheinen als kurzer Dialog; der Berater pausiert jeweils 3 Sekunden.' }) : null
         ]);

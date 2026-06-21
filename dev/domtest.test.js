@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -106,6 +106,14 @@ s.buildings.schmiede = 2; var rc = SYS.craft(s, 'magistahlklinge');
 tryRender('Ausrüst-Modal', function () { window.GameUI.openEquipModal(rc.item); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
 tryRender('Expeditions-Modal', function () { window.GameUI.openExpeditionModal(window.GameData.region('wald')); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
 tryRender('Herrscher-Modal', function () { window.GameUI.openRulerModal(); if (!document.querySelector('.modal')) throw new Error('kein Modal'); });
+tryRender('Erfolge & Statistik-Modal', function () {
+  window.GameUI.openCodexModal('erfolge');
+  if (!document.querySelector('.modal.codex-modal')) throw new Error('kein Codex-Modal');
+  if (document.querySelectorAll('#modal-root .ach-card').length !== window.GameAchievements.total()) throw new Error('Erfolgskarten fehlen');
+  window.GameUI.openCodexModal('statistik');
+  if (!document.querySelector('#modal-root .stat-cell')) throw new Error('keine Statistikzellen');
+  document.querySelector('.modal-close').click();
+});
 tryRender('Last-Epoch-artiger Herrscher-Talentbaum', function () {
   s.herrscher.level = Math.max(8, s.herrscher.level);
   window.GameUI.openTalentModal();

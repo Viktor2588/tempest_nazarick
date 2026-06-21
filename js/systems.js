@@ -403,7 +403,8 @@
     var threat = stepThreat(state);
     var ev = stepEvents(state);
     var questsDone = checkQuests(state, false);
-    return { production: p, expeditionResults: results, raidWarning: threat.raidWarning, raidResult: threat.raidResult, event: ev, questsCompleted: questsDone, mapRefresh: mapRefresh };
+    var achievementsDone = root.GameAchievements ? root.GameAchievements.evaluate(state) : [];
+    return { production: p, expeditionResults: results, raidWarning: threat.raidWarning, raidResult: threat.raidResult, event: ev, questsCompleted: questsDone, achievementsUnlocked: achievementsDone, mapRefresh: mapRefresh };
   }
 
   // Offline-Fortschritt (gebündelt, gedeckelt).
