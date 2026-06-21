@@ -201,10 +201,22 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 - Eine taktische Szenariomatrix spielt die stärkste Form jeder der 20 Kreaturenlinien durch alle 10 Regionen und 3 Risikostufen; alle 8 Kampfaktionen, Statuswirkungen, Bewegung, Warten, Siege und Niederlagen werden abgedeckt.
 - Tiefe Invarianten prüfen verschachtelte Zustände auf `NaN`/`Infinity`, eindeutige IDs, gültige Spezies/Skills/Jobs/Truppen, korrekte LP/MP/Positionen, kollisionsfreie Rasterfelder sowie Save-Roundtrips normaler und laufender Kampfzustände.
 - Verifikation: `bun test` → 14/14 Tests grün (inkl. 238 Logik-, 68 DOM- und 61 Durchspiel-Checks).
- 
-Phase 25 - Brain storm Wie kriegen wir eine Graphik wie Heroes of might & magic olden era hin?
+
+[x] **Phase 25 – Grafik-Roadmap im Stil moderner handgemalter Fantasy-Strategie (2026-06-21)**
+- Ist-Stand gegen offizielle Olden-Era-Screenshots analysiert: Panorama/Weltillustration sind bereits stark; größter Abstand sind schwebende Kartenknoten, leere Rasterflächen, Emoji-Figuren, fehlender Bodenkontakt und kaum Szenenanimation.
+- Entscheidung: kein Engine-Wechsel, sondern hybride Canvas-2D-Spielbühnen für Abenteuerkarte und Kampf; Management-UI, Logik, Saves und Offline-HTML/JS bleiben erhalten.
+- Konkrete Art Bible, Asset-Spezifikation, 25-MB-Budget, Performance-/Accessibility-Regeln, Risiken und Abnahmekriterien in `GRAPHICS_ROADMAP.md` dokumentiert.
+- Folgeumsetzung in vier vertikalen Schritten vorgeschlagen: Renderer/Kampf-Slice → echte Abenteuerwelt → alle Biome/Kreaturen → Reich/UI-Politur.
 
 Phase 26 installiere UE 5.8 MCP
+
+Phase 33 – Canvas-Renderer & Kampf-Vertical-Slice (Jura-Biom, 6 animierte Einheitenlinien)
+
+Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt (Ortsobjekte, Nebelmaske, animierte Armeen)
+
+Phase 35 – Vollständige Biome, Board-Sprites für 20 Linien & Effektatlas
+
+Phase 36 – Reichspanorama und Management-UI materialisieren
 
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.

@@ -65,6 +65,7 @@ Den ganzen Ordner aufs Gerät kopieren und `index.html` im mobilen Browser öffn
 ## Projektstruktur
 
 ```
+GRAPHICS_ROADMAP.md Phase-25-Zielbild, Art Bible, Asset-Pipeline und visuelle Folgephasen
 index.html          Minimales Grundgerüst: Topbar, Tab-Container, Navigation, Modal-/Toast-Wurzel
 style.css           Responsives Theme (mobile Fallback + Desktop-Spiel-Shell)
 assets/             Zwei lokale Kreaturen-Atlanten, Königreichspanorama und Abenteuerkarte
