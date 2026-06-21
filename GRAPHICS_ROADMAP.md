@@ -1,6 +1,6 @@
 # Grafik-Roadmap: Tempest × handgemalte Fantasy-Strategie
 
-Stand: 2026-06-21  
+Stand: 2026-06-21
 Status: Ergebnis von Phase 25 (Konzept, keine Engine-Migration)
 
 ## Entscheidung
