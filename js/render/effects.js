@@ -6,7 +6,7 @@
   'use strict';
   var root = (typeof window !== 'undefined') ? window : globalThis;
 
-  var durations = { move: 360, attack: 320, magic: 460, hit: 260, heal: 420, death: 520 };
+  var durations = { move: 360, 'army-move': 700, attack: 320, magic: 460, hit: 260, heal: 420, death: 520 };
   function clamp01(n) { return Math.max(0, Math.min(1, n)); }
   function easeOut(n) { n = clamp01(n); return 1 - Math.pow(1 - n, 3); }
   function easeInOut(n) { n = clamp01(n); return n < 0.5 ? 2 * n * n : 1 - Math.pow(-2 * n + 2, 2) / 2; }

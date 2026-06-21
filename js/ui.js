@@ -305,6 +305,7 @@
     },
 
     render: function () {
+      if (this._adventureScene) { this._adventureScene.destroy(); this._adventureScene = null; }
       var screen = $('screen');
       var sc = screen.scrollTop;
       clear(screen);
@@ -963,7 +964,37 @@
           el('span', { class: 'muted', text: 'Bewegung erneuert in ' + refreshIn + ' s' }),
           el('span', { class: 'pill', text: (s.armyGroups || []).length + '/' + SYS.maxArmyGroups(s) + ' Armeen' })
         ]));
-        var world = el('div', { class: 'strategy-map', role: 'region', 'aria-label': 'Spielbare strategische Abenteuerkarte' });
+        var mapView = SYS.adventureRenderState(s), mapViewNodes = {};
+        mapView.nodes.forEach(function (node) { mapViewNodes[node.id] = node; });
+        if (!mapViewNodes[self._selectedMapNodeId]) self._selectedMapNodeId = 'hauptstadt';
+        var inspector = el('aside', { class: 'map-inspector', 'aria-live': 'polite' });
+        function selectMapNode(nodeId) {
+          if (!mapViewNodes[nodeId]) return;
+          self._selectedMapNodeId = nodeId;
+          renderMapInspector();
+          if (self._adventureScene) self._adventureScene.setSelected(nodeId);
+        }
+        function renderMapInspector() {
+          clear(inspector);
+          var viewNode = mapViewNodes[self._selectedMapNodeId] || mapView.nodes[0];
+          var node = SYS.strategicNode(viewNode.id), region = node.kind === 'region' ? GD.region(node.id) : null;
+          var site = node.siteId ? GD.strategicSite(node.siteId) : null, actions = el('div', { class: 'card-actions map-inspector-actions' });
+          if (site) actions.appendChild(btn('Ort untersuchen', function () { self.openMapSiteModal(node); }, { small: true, cls: viewNode.secured ? '' : 'btn-gold', disabled: !viewNode.unlocked }));
+          if (region) {
+            actions.appendChild(btn('Expedition planen', function () { self.openExpeditionModal(region); }, { small: true, disabled: !viewNode.unlocked }));
+            actions.appendChild(btn('Taktischer Kampf', function () { self.openBattleSetupModal(region); }, { small: true, cls: 'btn-gold', disabled: !viewNode.unlocked || !!(s.activeCombat && s.activeCombat.status === 'active') }));
+          }
+          var localArmies = (s.armyGroups || []).filter(function (group) { return group.position === node.id; });
+          localArmies.forEach(function (group) { actions.appendChild(btn(group.name + ' öffnen', function () { self.openArmyModal(group); }, { small: true, cls: 'btn-primary' })); });
+          inspector.appendChild(el('div', { class: 'map-inspector-head' }, [
+            el('span', { class: 'map-inspector-icon', text: viewNode.icon }),
+            el('div', null, [el('b', { text: viewNode.name }), el('span', { class: 'map-inspector-status status-' + viewNode.status, text: viewNode.statusText })])
+          ]));
+          inspector.appendChild(el('p', { text: site ? site.desc : (region ? region.desc : 'Hauptstadt und Ausgangspunkt aller Armeen.') }));
+          inspector.appendChild(el('div', { class: 'map-inspector-links', text: 'Direkte Wege: ' + SYS.strategicNeighbors(node.id).map(SYS.strategicNodeName).join(' · ') }));
+          if (actions.children.length) inspector.appendChild(actions);
+        }
+        var world = el('div', { class: 'strategy-map strategy-map-fallback', role: 'region', 'aria-label': 'Spielbare strategische Abenteuerkarte' });
         var paths = svgEl('svg', { class: 'map-routes', viewBox: '0 0 100 100', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
         GD.strategicNodes.forEach(function (node) {
           (node.links || []).forEach(function (targetId) {
@@ -999,7 +1030,7 @@
             class: 'map-node map-node-' + (node.kind || 'region') + (claimed ? ' claimed' : '') + (!unlocked ? ' locked' : '') + (site && !claimed && unlocked ? ' discoverable' : '') + (reachable[node.id] ? ' reachable' : ''),
             style: 'left:' + node.x + '%;top:' + node.y + '%',
             title: SYS.strategicNodeName(node),
-            onclick: site ? function () { self.openMapSiteModal(node); } : null
+            onclick: function () { selectMapNode(node.id); }
           }, [
             el('span', { class: 'map-node-icon', text: node.icon || (region && region.icon) || (site && site.icon) || '•' }),
             el('span', { class: 'map-node-name', text: node.name || (region && region.name) || (site && (site.short || site.name)) || node.id }),
@@ -1012,8 +1043,23 @@
             })) : null
           ]));
         });
-        var viewport = el('div', { class: 'strategy-map-viewport' }, world);
+        var mapCanvas = el('canvas', {
+          class: 'strategy-map-canvas', width: '1200', height: '680', role: 'img',
+          'aria-label': 'Illustrierte Abenteuerkarte mit Orten, Wegen, Nebel und Armeen. Details des gewählten Ortes stehen direkt unter der Karte.'
+        });
+        var mapScene = el('div', { class: 'strategy-map-scene' }, [mapCanvas, world]);
+        var viewport = el('div', { class: 'strategy-map-viewport' }, mapScene);
         box.appendChild(viewport);
+        renderMapInspector();
+        box.appendChild(inspector);
+        var queuedMapEvents = self._mapVisualEvents || []; self._mapVisualEvents = [];
+        if (window.GameAdventureScene && window.requestAnimationFrame) window.requestAnimationFrame(function () {
+          if (!mapCanvas.isConnected) return;
+          self._adventureScene = window.GameAdventureScene.mount(mapCanvas, mapView, {
+            mode: s.settings.effects || 'full', events: queuedMapEvents, selectedId: self._selectedMapNodeId,
+            onNode: selectMapNode
+          });
+        });
         var capturedSites = (s.claimedMapSites || []).map(function (id) {
           var site = GD.strategicSite(id), level = s.mapSiteLevels[id] || 1, parts = [];
           if (site && site.produce) for (var k in site.produce) parts.push('+' + (site.produce[k] * level).toFixed(1) + ' ' + resIcon(k) + '/s');

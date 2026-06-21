@@ -218,7 +218,13 @@ Phase 26 installiere UE 5.8 MCP
 - **Mobil/Performance/Offline:** maximal 30 FPS, DPR-Limit 1,5, ereignisbasierter Renderloop außerhalb voller Idle-Animation und lokaler PWA-Cache v3 inklusive Canvas-Scripts und Kampfassets.
 - **Verifikation:** `bun test` → 22/22 Testfälle grün (238 Logik-, 68 DOM- und 61 Durchspiel-Checks plus 5 Renderer-/Assettests); echte Chromium-Abnahme bei 390×844 und 1440×900 ohne Browserfehler, Canvas-Kampf auf beiden Größen spielbar.
 
-[ ] **Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt (in Bearbeitung, 2026-06-21)** — Ortsobjekte, Nebelmaske, Wegvorschau und animierte Armeen.
+[x] **Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt (2026-06-21)**
+- **18 echte Ortsobjekte:** Tempest, alle Regionen, Ressourcenanlagen und Fundorte verwenden einen lokalen transparenten 6×3-Atlas statt schwebender Kartenkarten; der bestehende Landschaftshintergrund bleibt die gemeinsame Welt.
+- **Lesbarer Fortschritt:** Eine weich auslaufende, zustandsabhängig gecachte Nebelmaske enthüllt gesicherte und erreichbare Gebiete. Gesperrt, erreichbar, bewacht und gesichert unterscheiden sich zusätzlich durch Schloss, Raute, Warndreieck und Haken.
+- **Armeen & Wege:** Herrscher- und Anführerarmeen besitzen vier Blickrichtungen, Bodenstand, Kommandoanzeige und reduzierte Vollmodus-Idle-Animation. Direkte mögliche Märsche werden auf Auswahl hervorgehoben; ausgeführte Märsche interpolieren rein visuell zwischen Start und Ziel.
+- **Inspector statt Textteppich:** Tippen/Klicken auf einen Ort aktualisiert einen responsiven Inspector mit Status, Beschreibung, direkten Wegen und den unveränderten Orts-, Expeditions-, Kampf- und Armeeaktionen. Die bisherige DOM-Karte bleibt als semantisches Fallback erhalten.
+- **Renderer-Vertrag & Performance:** `adventureRenderState()` liefert ausschließlich Kopien an `adventure-scene.js`; die Canvas-Szene verändert keine Regeln oder Zustände. Maximal 20 FPS, DPR-Limit 1,25, gecachte Nebelmaske, sauberer Renderloop-Abbau und die vorhandenen Effektstufen begrenzen Mobilkosten.
+- **Offline & Verifikation:** PWA-Cache v4 enthält Renderer, Weltkarte und finale Atlanten. `bun test` → 28/28 Testfälle grün (238 Logik-, 68 DOM- und 61 Durchspiel-Checks plus Karten-/Canvas-/Assettests); 27 echte Chromium-Aufnahmen bei 390×844 und 1440×900 ohne Browserfehler oder Seitenüberbreite.
 
 Phase 35 – Vollständige Biome, Board-Sprites für 20 Linien & Effektatlas
 

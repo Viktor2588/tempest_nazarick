@@ -1399,6 +1399,55 @@
     if (node.kind === 'region') return regionUnlocked(state, node.id);
     return !node.requires || state.claimedRegions.indexOf(node.requires) >= 0;
   }
+  // Kopiertes View-Modell für die illustrierte Abenteuerkarte. Renderer
+  // erhalten keine Zustandsreferenzen und können daher keine Regeln umgehen.
+  function adventureRenderState(state) {
+    var reachable = {};
+    (state.armyGroups || []).forEach(function (group) {
+      if ((group.movement || 0) <= 0) return;
+      strategicNeighbors(group.position).forEach(function (target) {
+        if (strategicNodeUnlocked(state, target.id)) reachable[target.id] = true;
+      });
+    });
+    var nodes = GD().strategicNodes.map(function (node) {
+      var region = node.kind === 'region' ? GD().region(node.id) : null;
+      var site = node.siteId ? GD().strategicSite(node.siteId) : null;
+      var secured = strategicNodeSecured(state, node.id), unlocked = strategicNodeUnlocked(state, node.id);
+      var status = !unlocked ? 'locked' : (secured ? 'secured' : (reachable[node.id] ? 'reachable' : 'guarded'));
+      var statusText = status === 'locked' ? 'Im Nebel' : (status === 'secured' ? 'Gesichert' : (status === 'reachable' ? 'Erreichbar' : 'Bewacht'));
+      if (site && site.kind === 'resource' && mapSiteClaimed(state, site.id)) statusText = 'Gesichert · Stufe ' + (state.mapSiteLevels[site.id] || 1);
+      else if (site && site.kind === 'discovery' && mapSiteExplored(state, site.id)) statusText = 'Geborgen';
+      else if (site && unlocked && !secured) statusText += ' · Wache ' + site.guard;
+      return {
+        id: node.id, name: strategicNodeName(node), icon: node.icon || (region && region.icon) || (site && site.icon) || '•',
+        kind: node.kind || 'region', siteId: node.siteId || null, x: node.x, y: node.y,
+        secured: secured, unlocked: unlocked, reachable: !!reachable[node.id], status: status, statusText: statusText,
+        links: (node.links || []).slice(), guard: site ? site.guard : (region ? region.power : 0)
+      };
+    });
+    var routes = [];
+    GD().strategicNodes.forEach(function (node) {
+      (node.links || []).forEach(function (targetId) {
+        if (node.id > targetId) return;
+        var fromUnlocked = strategicNodeUnlocked(state, node.id), toUnlocked = strategicNodeUnlocked(state, targetId);
+        routes.push({
+          fromId: node.id, toId: targetId,
+          status: strategicNodeSecured(state, node.id) && strategicNodeSecured(state, targetId) ? 'secured' : (fromUnlocked && toUnlocked ? 'unlocked' : 'fogged')
+        });
+      });
+    });
+    var armies = (state.armyGroups || []).map(function (group) {
+      var node = strategicNode(group.position), leader = group.rulerLed ? state.herrscher : findCreature(state, group.leaderUid);
+      var species = !group.rulerLed && leader ? GD().creature(leader.speciesId) : null;
+      return {
+        id: group.id, renderKey: 'army:' + group.id, name: group.name, nodeId: group.position,
+        x: node ? node.x : 7, y: node ? node.y : 50, rulerLed: !!group.rulerLed,
+        leaderIcon: group.rulerLed ? GD().rulerStages[state.herrscher.stage].icon : (species ? species.icon : '🚩'),
+        movement: group.movement || 0, command: armyCommandUsed(group), power: armyGroupPower(state, group)
+      };
+    });
+    return { width: 100, height: 100, nodes: nodes, routes: routes, armies: armies };
+  }
   // Kürzester begehbarer Weg. Ungesicherte Ziele dürfen betreten werden,
   // blockieren aber als bewachte Orte den Durchmarsch.
   function strategicPath(state, fromId, targetId) {
@@ -2633,6 +2682,7 @@
     recruitTroops: recruitTroops, dismissTroops: dismissTroops, armyLeaderBonus: armyLeaderBonus, armyGroupPower: armyGroupPower,
     strategicNode: strategicNode, strategicNodeName: strategicNodeName, strategicNeighbors: strategicNeighbors,
     strategicNodeUnlocked: strategicNodeUnlocked, strategicNodeSecured: strategicNodeSecured, strategicPath: strategicPath,
+    adventureRenderState: adventureRenderState,
     mapSiteClaimed: mapSiteClaimed, mapSiteExplored: mapSiteExplored, mapSiteUpgradeCost: mapSiteUpgradeCost,
     canInteractMapSite: canInteractMapSite, interactMapSite: interactMapSite,
     canUpgradeMapSite: canUpgradeMapSite, upgradeMapSite: upgradeMapSite,

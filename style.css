@@ -671,6 +671,14 @@ button { font-family: inherit; }
   border-radius: var(--radius); background: #0a1018; scrollbar-width: thin; scrollbar-color: #6b5330 #171527;
   box-shadow: inset 0 0 0 1px rgba(214,180,92,.18), 0 8px 22px rgba(0,0,0,.4);
 }
+.strategy-map-scene { position: relative; min-width: 760px; height: 430px; overflow: hidden; background: #0a1018; }
+.strategy-map-canvas { display: none; width: 100%; height: 100%; touch-action: manipulation; }
+.strategy-map-scene.canvas-enhanced .strategy-map-canvas { display: block; }
+.strategy-map-scene.canvas-enhanced .strategy-map-fallback {
+  position: absolute !important; width: 1px !important; height: 1px !important; min-width: 1px !important;
+  padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0 0 0 0); clip-path: inset(50%);
+  white-space: nowrap; border: 0 !important;
+}
 .strategy-map {
   position: relative; min-width: 760px; height: 430px; isolation: isolate; overflow: hidden;
   background:
@@ -716,6 +724,21 @@ button { font-family: inherit; }
   box-shadow: 0 3px 8px rgba(0,0,0,.45);
 }
 .map-army-marker small { font-size: 8px; color: var(--accent-2); }
+.map-inspector {
+  display: flex; flex-direction: column; gap: 7px; margin: 0 0 10px; padding: 11px;
+  border: 1px solid #4b6571; border-radius: 11px; background: linear-gradient(135deg, rgba(19,42,50,.96), rgba(14,24,37,.98));
+}
+.map-inspector-head { display: flex; align-items: center; gap: 10px; }
+.map-inspector-head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.map-inspector-icon { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid #5f7983; border-radius: 10px; background: #152833; font-size: 24px; }
+.map-inspector-status { width: fit-content; padding: 2px 6px; border: 1px solid currentColor; border-radius: 999px; font-size: 9px; }
+.map-inspector-status.status-secured { color: #8fe4ad; }
+.map-inspector-status.status-reachable { color: #ffd174; }
+.map-inspector-status.status-guarded { color: #ff9aa8; }
+.map-inspector-status.status-locked { color: #9da0ae; }
+.map-inspector p { margin: 0; color: var(--text-dim); font-size: 11px; }
+.map-inspector-links { color: var(--text-mut); font-size: 9px; }
+.map-inspector-actions { margin-top: 2px; }
 .map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; font-size: 10px; color: var(--text-dim); }
 .map-legend > span:not(.pill) { padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-2); }
 .site-summary { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
@@ -1484,6 +1507,8 @@ select.btn { text-align: left; min-height: 40px; }
       linear-gradient(rgba(8,16,24,.12), rgba(5,7,15,.34)),
       url('assets/tempest-adventure-map.png') center / cover no-repeat;
   }
+  .game-view-karte .strategy-map-scene { width: 100%; min-width: 0; height: clamp(520px, 63vh, 720px); }
+  .game-view-karte .strategy-map-canvas { width: 100%; height: 100%; }
   .game-view-karte .strategy-map::after {
     content: "";
     position: absolute;
@@ -1507,6 +1532,9 @@ select.btn { text-align: left; min-height: 40px; }
   .game-view-karte .map-route { stroke-width: 1.15; }
   .game-view-karte .map-route.unlocked { stroke-width: 1.7; }
   .game-view-karte .map-route.secured { stroke-width: 2.15; filter: drop-shadow(0 0 2px rgba(94,214,137,.5)); }
+  .game-view-karte .map-inspector { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(340px, 1.2fr); align-items: center; padding: 12px 14px; }
+  .game-view-karte .map-inspector > p, .game-view-karte .map-inspector-links { grid-column: 1; }
+  .game-view-karte .map-inspector-actions { grid-column: 2; grid-row: 1 / span 3; justify-content: flex-end; }
   .game-view-karte .echo-map { width: 100%; min-width: 0; height: 470px; }
   .game-view-karte .echo-node { width: 72px; height: 72px; }
   .game-view-karte .echo-node.boss { width: 90px; height: 90px; }

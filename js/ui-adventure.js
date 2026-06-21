@@ -39,6 +39,16 @@
     return events.slice(0, 12);
   }
 
+  function mapVisualDiff(before, after) {
+    var oldArmies = {}, events = [];
+    (before && before.armies || []).forEach(function (army) { oldArmies[army.renderKey] = army; });
+    (after && after.armies || []).forEach(function (army) {
+      var old = oldArmies[army.renderKey];
+      if (old && old.nodeId !== army.nodeId) events.push({ type: 'army-move', key: army.renderKey, from: { x: old.x, y: old.y }, to: { x: army.x, y: army.y } });
+    });
+    return events;
+  }
+
   Object.assign(UI, {
     armyGroupCard: function (group) {
       var s = this.state, self = this;
@@ -55,8 +65,12 @@
       function moveButton(target) {
         var chk = SYS.canMoveArmyGroup(s, group.id, target.id);
         return btn('➜ ' + SYS.strategicNodeName(target), function () {
+          var before = SYS.adventureRenderState(s);
           var r = SYS.moveArmyGroup(s, group.id, target.id);
-          if (!r.ok) toast(r.reason, 'bad'); else toast('🗺️ ' + group.name + ' zieht weiter.', 'good');
+          if (!r.ok) toast(r.reason, 'bad'); else {
+            self._mapVisualEvents = mapVisualDiff(before, SYS.adventureRenderState(s));
+            toast('🗺️ ' + group.name + ' zieht weiter.', 'good');
+          }
           self.commit();
         }, { small: true, disabled: !chk.ok });
       }

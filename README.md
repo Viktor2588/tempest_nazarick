@@ -18,8 +18,9 @@ ausbaubare Ressourcenanlagen sowie optionale Fundorte mit einmaliger Beute.
 Die Desktop-Ansicht besitzt eine vollwertige Strategie-Spieloberfläche mit Seitenleiste,
 Ressourcen-HUD, interaktivem Tempest-Panorama, großer Abenteuerkarte und nahezu
 bildschirmfüllender Kampfbühne. Alle 20 Kreaturenlinien besitzen erkennbare lokale
-Monster-Portraits; eine illustrierte Weltlandschaft liegt hinter dem strategischen
-Knotenbrett. Das Spiel bleibt vollständig offline.
+Monster-Portraits. Die illustrierte Weltkarte zeigt 18 echte Ortsobjekte, weich
+auslaufenden Entdeckungsnebel, Wegvorschauen und animierte Armeen; ein responsiver
+Inspector hält Ortsaktionen außerhalb der Szene. Das Spiel bleibt vollständig offline.
 Die Magie ist in aktive Kampf-/Abenteuerzauber der Arkanen Akademie, dauerhafte
 Reichsrituale und den Königreichs-Forschungsbaum getrennt.
 
@@ -84,7 +85,7 @@ js/
                     Skill-Meisterschaft, Auto-Modus, Freischaltungen/Gating
   systems-combat.js Taktischer 7×5-Elementkampf; erweitert GameSystems
   art-data.js       Reine Atlas-/Asset-Metadaten für die Canvas-Szenen
-  render/           DPR-/30-FPS-Canvas-Core, Animationstimeline und isometrische Kampfszene
+  render/           Begrenzter DPR-/FPS-Canvas-Core, Animationstimeline, isometrische Kampf- und Abenteuerkartenszene
   ui.js             UI-Kern: Views, Management-Modals und gemeinsame DOM-Helfer
   ui-adventure.js   Karten-, Armee-, Echo-, Expeditions- und Kampf-UI; erweitert GameUI
   main.js           Init, Spiel-Loop (1 Tick/Sek.), Offline-Fortschritt, Auto-Save
@@ -93,6 +94,7 @@ dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
   domtest.test.js   DOM-Rendertest (jsdom)
   playthrough.test.js Komplettes Headless-Durchspiel (jsdom)
   canvas.test.js    Renderer-Vertrag, Hit-Test, Effektstufen und transparente Assets
+  adventure-canvas.test.js Karten-View-Modell, Orts-/Armeeatlanten, Hit-Test und Blickrichtungen
   balance.js        Balance-Analyse der Kraftkurven (Bun)
   shots.js          Mobile-/Desktop-Screenshots via Playwright/Chromium
   screenshots/      Erzeugte PNGs (390×844 und 1440×900)
@@ -221,7 +223,7 @@ apt-get download fonts-noto-color-emoji && dpkg-deb -x fonts-noto-color-emoji_*.
 
 # Screenshots erzeugen
 LD_LIBRARY_PATH=/tmp/chromedeps/usr/lib/x86_64-linux-gnu bun run shots
-# → 25 PNGs in dev/screenshots/, darunter Kreaturenportraits, illustrierte Weltkarte und Echo-Netz
+# → 27 PNGs in dev/screenshots/, darunter Kreaturenportraits, Canvas-Abenteuerkarte und Echo-Netz
 ```
 
 ---

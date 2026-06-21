@@ -24,6 +24,16 @@
     dragon: { col: 2, row: 1, scale: 1.05, anchorY: 0.92 }
   };
 
+  var locationOrder = [
+    'hauptstadt', 'wald', 'site_manaquelle', 'site_jagdlager', 'hoehlen', 'site_mine',
+    'sumpf', 'site_handel', 'ruinen', 'site_archiv', 'grenze', 'gebirge',
+    'site_drachennest', 'schattenreich', 'site_seelenbrunnen', 'site_schatzhort', 'himmelsfeste', 'goetterthron'
+  ];
+  var mapObjects = {};
+  locationOrder.forEach(function (id, index) {
+    mapObjects[id] = { col: index % 6, row: Math.floor(index / 6), scale: id === 'hauptstadt' ? 1.15 : (id.indexOf('site_') === 0 ? 0.88 : 1) };
+  });
+
   function normalizeLine(line) {
     return String(line || '').toLowerCase().replace(/[^a-zäöüß]/g, '');
   }
@@ -36,13 +46,30 @@
     return out;
   }
 
+  function mapObjectFor(nodeId) {
+    var source = mapObjects[nodeId]; if (!source) return null;
+    return { key: nodeId, col: source.col, row: source.row, scale: source.scale };
+  }
+
+  function armyFor(rulerLed, direction) {
+    var directions = { east: 0, south: 1, west: 2, north: 3 };
+    return { col: directions[direction] == null ? 0 : directions[direction], row: rulerLed ? 0 : 1 };
+  }
+
   root.GameArtData = {
     assets: {
       battleJura: 'assets/battle/jura-clearing.png',
-      battleJuraUnits: 'assets/battle/jura-units.png'
+      battleJuraUnits: 'assets/battle/jura-units.png',
+      adventureMap: 'assets/tempest-adventure-map.png',
+      adventureLocations: 'assets/world/adventure-locations.png',
+      adventureArmies: 'assets/world/adventure-armies.png'
     },
     battleAtlas: { columns: 3, rows: 2, units: units },
+    adventureLocationAtlas: { columns: 6, rows: 3, objects: mapObjects },
+    adventureArmyAtlas: { columns: 4, rows: 2 },
     battleLines: Object.keys(units),
-    unitFor: unitFor
+    unitFor: unitFor,
+    mapObjectFor: mapObjectFor,
+    armyFor: armyFor
   };
 })();

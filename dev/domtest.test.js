@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -311,9 +311,12 @@ SYS.recruitTroops(sArmy, armyGroup.id, 'schleim', 20);
 tryRender('Strategische Karte zeigt steuerbare Armeefigur', function () {
   window.GameUI.activeTab = 'karte'; window.GameUI.render();
   if (!document.querySelector('#screen .strategy-map')) throw new Error('keine Weltkarte');
+  if (!document.querySelector('#screen .strategy-map-canvas') || !document.querySelector('#screen .map-inspector')) throw new Error('Canvas-Karte oder Ortsinspektor fehlt');
   if (!document.querySelector('#screen .map-routes') || document.querySelectorAll('#screen .map-node-resource, #screen .map-node-discovery').length < 8) throw new Error('keine echte Abenteuerkarte mit Fundorten');
   if (!document.querySelector('#screen .map-army-marker')) throw new Error('keine Armeefigur');
   if (document.getElementById('screen').textContent.indexOf('Kobalts Hundertschaft') < 0) throw new Error('keine Armee-Karte');
+  var targetNode = document.querySelector('#screen .map-node-resource'); targetNode.click();
+  if (document.querySelector('#screen .map-inspector').textContent.indexOf('Direkte Wege') < 0) throw new Error('Ortsauswahl aktualisiert Inspektor nicht');
 });
 sArmy.claimedRegions = ['wald', 'hoehlen'];
 var echoUi = SYS.ensureEchoMap(sArmy);

@@ -29,8 +29,19 @@ var fileUrl = 'file://' + path.join(dir, 'index.html');
   await page.waitForSelector('#tabbar .tab');
 
   async function shot(tab, name) {
-    await page.evaluate(function (t) { window.GameUI.activeTab = t; window.GameUI.renderTabbar(); window.GameUI.render(); window.scrollTo(0, 0); }, tab);
+    await page.evaluate(function (t) {
+      window.GameUI.activeTab = t; window.GameUI.renderTabbar(); window.GameUI.render(); window.scrollTo(0, 0);
+      var screen = document.getElementById('screen'); if (screen) screen.scrollTop = 0;
+    }, tab);
     await page.waitForTimeout(180);
+    if (tab === 'karte') {
+      await page.waitForTimeout(900);
+      var mapReady = await page.evaluate(function () {
+        var canvas = document.querySelector('.strategy-map-canvas');
+        return { exists: !!canvas, ready: canvas && canvas.dataset.assetsReady, connected: canvas && canvas.isConnected, display: canvas && getComputedStyle(canvas).display, scene: typeof window.GameAdventureScene };
+      });
+      if (!mapReady.exists || mapReady.ready !== '1') throw new Error('Abenteuerkarten-Canvas wurde nicht bereit: ' + JSON.stringify(mapReady));
+    }
     await page.screenshot({ path: path.join(out, name + '.png') });
     console.log('  📸 ' + name + '.png');
   }
@@ -68,6 +79,7 @@ var fileUrl = 'file://' + path.join(dir, 'index.html');
     var jobs = ['armee', 'magie', 'material', 'armee', 'wissen', 'armee'];
     S.creatures.forEach(function (c, i) { c.job = jobs[i % jobs.length]; });
     S.buildings.arena = 3;
+    S.settings.effects = 'reduced';
     var legion = SYS.createArmyGroup(S, gob.uid, 'Goldzahns Jura-Legion');
     if (legion.ok) {
       SYS.recruitTroops(S, legion.group.id, 'goblin', 50);
@@ -87,6 +99,18 @@ var fileUrl = 'file://' + path.join(dir, 'index.html');
   await shot('magie', '4-magie');
   await shot('schmiede', '5-schmiede');
   await shot('karte', '6-karte');
+  await page.screenshot({ path: path.join(out, 'phase34-adventure-mobile.png') });
+  console.log('  📸 phase34-adventure-mobile.png');
+  var mobileMapInteraction = await page.evaluate(function () {
+    var canvas = document.querySelector('.strategy-map-canvas'), node = window.GameSystems.strategicNode('site_manaquelle');
+    if (!canvas || !node) return false;
+    var rect = canvas.getBoundingClientRect();
+    canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: rect.left + rect.width * node.x / 100, clientY: rect.top + rect.height * node.y / 100 }));
+    var inspector = document.querySelector('.map-inspector');
+    return canvas.dataset.assetsReady === '1' && inspector && inspector.textContent.indexOf('Manaquelle') >= 0;
+  });
+  if (!mobileMapInteraction) errors.push('adventure-map: Canvas-Hit-Test oder Ortsinspektor reagiert nicht');
+  else console.log('  ✓ Canvas-Ortswahl aktualisiert den Inspector');
 
   // Modal-Aufnahme: Expedition
   await page.evaluate(function () { window.GameUI.activeTab = 'karte'; window.GameUI.render(); window.GameUI.openExpeditionModal(window.GameData.region('wald')); });
@@ -175,6 +199,8 @@ var fileUrl = 'file://' + path.join(dir, 'index.html');
   await page.setViewportSize({ width: 1440, height: 900 });
   await shot('uebersicht', '13-desktop-uebersicht');
   await shot('karte', '14-desktop-karte');
+  await page.screenshot({ path: path.join(out, 'phase34-adventure-desktop.png') });
+  console.log('  📸 phase34-adventure-desktop.png');
   await page.evaluate(function () { var map = document.querySelector('.strategy-map-viewport'); if (map) map.scrollIntoView({ block: 'start' }); });
   await page.waitForTimeout(150);
   await page.screenshot({ path: path.join(out, '14b-desktop-illustrated-map.png') });
@@ -226,5 +252,5 @@ var fileUrl = 'file://' + path.join(dir, 'index.html');
 
   await browser.close();
   if (errors.length) { console.log('\n⚠️ Laufzeitfehler im Browser:'); errors.forEach(function (e) { console.log('   ' + e); }); process.exit(1); }
-  console.log('\nFertig — 25 Screenshots in dev/screenshots/, keine Browser-Fehler ✔');
+  console.log('\nFertig — 27 Screenshots in dev/screenshots/, keine Browser-Fehler ✔');
 })().catch(function (e) { console.error('FEHLER:', e); process.exit(1); });

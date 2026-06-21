@@ -5,7 +5,7 @@ const root = import.meta.dir + '/..';
 const expectedOrder = [
   'js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js',
   'js/systems.js', 'js/systems-combat.js',
-  'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js',
+  'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js',
   'js/ui.js', 'js/ui-adventure.js', 'js/main.js'
 ];
 
@@ -31,6 +31,7 @@ test('Systemmodule bleiben DOM-frei und Kernmonolithen unter den vereinbarten Gr
   const adventure = await Bun.file(root + '/js/ui-adventure.js').text();
   const canvasCore = await Bun.file(root + '/js/render/canvas-core.js').text();
   const battleScene = await Bun.file(root + '/js/render/battle-scene.js').text();
+  const adventureScene = await Bun.file(root + '/js/render/adventure-scene.js').text();
 
   [systems, combat].forEach(function (source) {
     expect(source).not.toMatch(/\bdocument\s*[.[]/);
@@ -43,6 +44,8 @@ test('Systemmodule bleiben DOM-frei und Kernmonolithen unter den vereinbarten Gr
   expect(canvasCore).not.toContain('GameSystems.');
   expect(battleScene).toContain('GameBattleScene');
   expect(battleScene).not.toContain('battleAction(');
+  expect(adventureScene).toContain('GameAdventureScene');
+  expect(adventureScene).not.toContain('moveArmyGroup(');
   expect(systems).toContain('root.GameSystemsInternal');
   expect(ui).toContain('window.GameUIInternal');
 });
@@ -56,4 +59,15 @@ test('Canvas-Assets sind lokal und innerhalb des Phase-33-Budgets', async () => 
   const worker = await Bun.file(root + '/sw.js').text();
   expect(worker).toContain("'./assets/battle/jura-clearing.png'");
   expect(worker).toContain("'./assets/battle/jura-units.png'");
+});
+
+test('Abenteuerkarten-Assets sind lokal gecacht und im Gesamtbudget', async () => {
+  const locations = Bun.file(root + '/assets/world/adventure-locations.png');
+  const armies = Bun.file(root + '/assets/world/adventure-armies.png');
+  expect(locations.size).toBeGreaterThan(500000);
+  expect(armies.size).toBeGreaterThan(500000);
+  expect(locations.size + armies.size).toBeLessThan(15 * 1024 * 1024);
+  const worker = await Bun.file(root + '/sw.js').text();
+  expect(worker).toContain("'./assets/world/adventure-locations.png'");
+  expect(worker).toContain("'./assets/world/adventure-armies.png'");
 });

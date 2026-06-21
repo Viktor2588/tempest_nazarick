@@ -140,7 +140,7 @@ Abnahme:
 - 30 FPS auf einem mittleren Mobilprofil; reduzierte Bewegung funktioniert.
 - Bestehende Logik-/Save-Tests unverändert grün.
 
-### Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt
+### Phase 34 – Illustrierte Abenteuerkarte als echte Spielwelt (umgesetzt 2026-06-21)
 
 - Kartenknoten durch Ortsobjekte ersetzen.
 - Weiche Nebelmaske, animierte Armeen, Wegvorschau und Umgebungsakzente.
@@ -151,6 +151,11 @@ Abnahme:
 - Kein wesentlicher Ort verdeckt einen anderen oder wird von UI abgeschnitten.
 - Gesperrt, erreichbar, bewacht und gesichert sind farb- und formunabhängig unterscheidbar.
 - Alle bestehenden Pfad-, Fundort- und Armeeaktionen bleiben erreichbar.
+
+Umgesetzt mit einem transparenten 6×3-Ortsatlas, einem 4×2-Armeeatlas, weich gecachter
+Nebelmaske, vier formverschiedenen Statusmarkern, animierter Wegvorschau und
+responsivem Ortsinspektor. Die Canvas-Schicht konsumiert nur das kopierte
+`adventureRenderState()`; DOM-Fallback, Spielregeln und Save-Schema bleiben unverändert.
 
 ### Phase 35 – Alle Biome, Kreaturen und Effekte
 
