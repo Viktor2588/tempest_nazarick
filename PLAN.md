@@ -293,6 +293,8 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
   - **Fix B:** Der Auto-Modus rekrutiert nur noch mit freier Wohn-Kapazität (Auto-Modus-only, keine Kern-Regel-Änderung) → Bevölkerung bleibt nahe Kapazität (Drive: 43/38 statt 3203/111) und der Berater beschwört wieder (`metrics.summoned` wächst). „Missernte" war ein normales Zufalls-Event, kein Bug.
   - **Verifikation:** `bun test` 78/78 grün; Simulations-Drive bestätigt Quest-Entsperrung und Kapazitäts-Begrenzung.
 
+[~] **Phase 44 – Kampfsystem-Überarbeitung zum echten Tactical-RPG (in Bearbeitung, claude/main-Session)** — Spielerwunsch: das Kampfsystem komplett überarbeiten und ein richtiges rundenbasiertes Tactical-RPG einführen. Großer Umbau auf `systems-combat.js`; inkrementell, claude-Session bearbeitet ihn (Automode bitte nicht parallel anfassen).
+
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.
 
