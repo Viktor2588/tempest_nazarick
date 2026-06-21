@@ -13,6 +13,10 @@ Nach zwei eroberten Territorien öffnen sich zusätzlich prozedurale **Echo-Netz
 Karten mit sichtbaren Belohnungen, stapelbaren Gegneraffixen, Boss-Kernen und endlos
 skalierenden Zyklen. Ein gespeicherter Seed hält jeden laufenden Pfad reproduzierbar.
 
+Für direkte Action zwischen den langen Aufbau- und Feldzugsphasen gibt es **Sturmeinsätze**:
+kurze, sofort wiederholbare Gefechte mit angekündigten Gegneraktionen, drei direkten Kontern,
+Fokus-/Komboaufbau und dem Finisher „Verschlingen". Siege erhöhen Eskalation, Gefahr und Beute.
+
 Die strategische Abenteuerkarte besitzt ein echtes verzweigtes Wegenetz, eroberbare und
 ausbaubare Ressourcenanlagen sowie optionale Fundorte mit einmaliger Beute.
 Die Desktop-Ansicht besitzt eine vollwertige Strategie-Spieloberfläche mit Seitenleiste,
@@ -84,10 +88,13 @@ js/
                     Affinität, Fusion, Runenschmiede, Echo-Generator/-Kämpfe, Herrscher-Talente,
                     Skill-Meisterschaft, Auto-Modus, Freischaltungen/Gating
   systems-combat.js Taktischer 7×5-Elementkampf; erweitert GameSystems
+  systems-skirmish.js Kurze Sturmeinsätze: Konter, Fokus, Kombo, Eskalation und Belohnungen
   art-data.js       Reine Atlas-/Asset-Metadaten für die Canvas-Szenen
   render/           Begrenzter DPR-/FPS-Canvas-Core, Animationstimeline, isometrische Kampf- und Abenteuerkartenszene
   ui.js             UI-Kern: Views, Management-Modals und gemeinsame DOM-Helfer
   ui-adventure.js   Karten-, Armee-, Echo-, Expeditions- und Kampf-UI; erweitert GameUI
+  ui-progress.js    Kompendium, Erfolge, Statistik und Bestiarium
+  ui-action.js      Sturmeinsatz-Karte, Missionswahl und kompaktes Action-Gefechtsmodal
   main.js           Init, Spiel-Loop (1 Tick/Sek.), Offline-Fortschritt, Auto-Save
 dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
   sim.test.js       Headless-Logiktest (Bun, ohne DOM)
@@ -118,8 +125,8 @@ dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
 
 ## Spielstand & Debugging
 
-- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v8 (alte v1–v7-Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt und Freischaltungen bleiben erhalten).
-- **Zurücksetzen:** im Spiel über das Herrscher-Modal (oben links) → „🗑 Spielstand
+- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v11 (alte Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt und Freischaltungen bleiben erhalten).
+- **Zurücksetzen:** im Spiel über **⚙️ Einstellungen** → „🗑 Spielstand
   zurücksetzen", oder in der Browser-Konsole:
   ```js
   localStorage.removeItem('tempest_kingdom_save_v2'); location.reload();

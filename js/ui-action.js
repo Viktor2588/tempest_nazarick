@@ -1,0 +1,162 @@
+/* ============================================================
+   ui-action.js — Sturmeinsatz-Oberfläche (Phase 40).
+   Erweitert GameUI um eine prominente Übersichtskarte und das
+   kompakte Konter-/Kombo-Gefechtsmodal.
+   ============================================================ */
+(function () {
+  'use strict';
+  var UI = window.GameUI, H = window.GameUIInternal, SYS = window.GameSystems;
+  if (!UI || !H || !SYS) throw new Error('ui-action.js muss nach ui.js und systems-skirmish.js geladen werden');
+  var el = H.el, btn = H.btn, bar = H.bar, fmt = H.fmt;
+  var openModal = H.openModal, closeModal = H.closeModal, toast = H.toast, costText = H.costText;
+
+  function heatPips(value) {
+    var row = el('div', { class: 'skirmish-heat', 'aria-label': 'Eskalation ' + value + ' von ' + SYS.SKIRMISH_MAX_HEAT });
+    for (var i = 0; i < SYS.SKIRMISH_MAX_HEAT; i++) row.appendChild(el('span', { class: i < value ? 'on' : '' }));
+    return row;
+  }
+
+  function focusPips(value) {
+    var row = el('div', { class: 'skirmish-focus', 'aria-label': 'Fokus ' + value + ' von ' + SYS.SKIRMISH_MAX_FOCUS });
+    for (var i = 0; i < SYS.SKIRMISH_MAX_FOCUS; i++) row.appendChild(el('span', { class: i < value ? 'on' : '', text: i < value ? '◆' : '◇' }));
+    return row;
+  }
+
+  function resultReward(result) {
+    if (!result || !result.reward) return 'Keine Beute';
+    return costText(result.reward) + (result.xp ? '  +' + result.xp + ' EP' : '');
+  }
+
+  Object.assign(UI, {
+    buildSkirmishCard: function () {
+      var self = this, status = SYS.skirmishStatus(this.state), active = status.active;
+      var card = el('div', { class: 'card skirmish-card' + (active ? ' active' : '') }, [
+        el('div', { class: 'skirmish-card-glow' }),
+        el('div', { class: 'card-head' }, [
+          el('div', { class: 'card-emoji', text: active ? '🔥' : '⚡' }),
+          el('div', { class: 'card-title' }, [
+            el('div', { class: 'name' }, ['Sturmeinsätze', active ? el('span', { class: 'pill tag-bad', text: '● Gefecht läuft' }) : el('span', { class: 'pill', text: 'AKTIV' })]),
+            el('div', { class: 'meta', text: active ? (status.mission.name + ' · Runde ' + active.round + '/' + active.maxRounds) : 'Kurze Gefechte: Absicht lesen, richtig kontern, Kombo zünden.' })
+          ])
+        ]),
+        el('div', { class: 'skirmish-card-stats' }, [
+          el('div', null, [el('small', { text: 'Eskalation' }), heatPips(status.heat)]),
+          el('div', null, [el('small', { text: 'Siegesserie' }), el('b', { text: '🔥 ' + status.streak })]),
+          el('div', null, [el('small', { text: 'Beste Kombo' }), el('b', { text: '⚡ ' + status.bestCombo })])
+        ]),
+        el('div', { class: 'card-actions' }, [
+          btn(active ? '⚔️ Gefecht fortsetzen' : '⚡ Jetzt kämpfen', function () { self.openSkirmishHub(); }, { cls: 'btn-action' })
+        ])
+      ]);
+      return card;
+    },
+
+    openSkirmishHub: function () {
+      var self = this, s = this.state, status = SYS.skirmishStatus(s);
+      if (status.active) { this.openSkirmishBattle(); return; }
+      var body = el('div', { class: 'skirmish-hub' }, [
+        el('p', { class: 'muted', text: 'Jeder Einsatz dauert nur wenige Entscheidungen. Korrekte Konter bauen Fokus und Kombo auf; Siege erhöhen die Eskalation und damit Beute und Gefahr.' }),
+        el('div', { class: 'skirmish-summary' }, [
+          el('span', { text: '🔥 Serie ' + status.streak }),
+          el('span', { text: '⚡ Rekord ' + status.bestCombo }),
+          el('span', { text: '🎯 Eskalation ' + status.heat + '/' + SYS.SKIRMISH_MAX_HEAT })
+        ])
+      ]);
+      var grid = el('div', { class: 'skirmish-missions' });
+      SYS.SKIRMISH_MISSIONS.forEach(function (m) {
+        var unlocked = SYS.missionUnlocked(s, m);
+        grid.appendChild(el('div', { class: 'skirmish-mission' + (unlocked ? '' : ' locked') }, [
+          el('div', { class: 'skirmish-mission-icon', text: unlocked ? m.icon : '🔒' }),
+          el('div', { class: 'skirmish-mission-copy' }, [
+            el('b', { text: m.name }),
+            el('p', { text: unlocked ? m.desc : m.hint }),
+            unlocked ? el('small', { text: 'Basisbeute: ' + costText(m.reward) }) : null
+          ]),
+          btn(unlocked ? 'Start' : 'Gesperrt', function () {
+            var res = SYS.startSkirmish(s, m.id);
+            if (!res.ok) { toast(res.reason, 'bad'); return; }
+            self.persist(s); self.refresh(); self.openSkirmishBattle();
+          }, { small: true, cls: unlocked ? 'btn-action' : '', disabled: !unlocked })
+        ]));
+      });
+      body.appendChild(grid);
+      openModal('Sturmeinsätze', body, '⚡', 'skirmish-modal');
+    },
+
+    openSkirmishBattle: function () {
+      var self = this, s = this.state, status = SYS.skirmishStatus(s), active = status.active;
+      if (!active) { this.openSkirmishHub(); return; }
+      var intent = status.intent;
+      var body = el('div', { class: 'skirmish-battle' });
+      body.appendChild(el('div', { class: 'skirmish-versus' }, [
+        el('div', { class: 'skirmish-fighter hero-side' }, [
+          el('div', { class: 'skirmish-avatar', text: '💧' }),
+          el('b', { text: s.herrscher.name }),
+          bar(active.heroHp / active.heroMaxHp, 'good'),
+          el('small', { text: Math.ceil(active.heroHp) + ' / ' + active.heroMaxHp + ' LP' })
+        ]),
+        el('div', { class: 'skirmish-vs', text: 'VS' }),
+        el('div', { class: 'skirmish-fighter enemy-side' }, [
+          el('div', { class: 'skirmish-avatar', text: status.mission.icon }),
+          el('b', { text: status.mission.name }),
+          bar(active.enemyHp / active.enemyMaxHp, 'bad'),
+          el('small', { text: Math.ceil(active.enemyHp) + ' / ' + active.enemyMaxHp + ' LP' })
+        ])
+      ]));
+      body.appendChild(el('div', { class: 'skirmish-telegraph' }, [
+        el('small', { text: 'GEGNERABSICHT · RUNDE ' + active.round + '/' + active.maxRounds }),
+        el('div', { class: 'skirmish-intent-icon', text: intent.icon }),
+        el('b', { text: intent.name }),
+        el('span', { text: intent.hint })
+      ]));
+      body.appendChild(el('div', { class: 'skirmish-meters' }, [
+        el('div', null, [el('small', { text: 'Fokus' }), focusPips(active.focus)]),
+        el('div', null, [el('small', { text: 'Kombo' }), el('b', { class: active.combo ? 'combo-live' : '', text: '⚡ x' + active.combo })]),
+        el('div', null, [el('small', { text: 'Eskalation' }), el('b', { text: status.heat + '/' + SYS.SKIRMISH_MAX_HEAT })])
+      ]));
+
+      function actButton(id, hint) {
+        var a = SYS.SKIRMISH_ACTIONS[id], available = SYS.skirmishActionAvailable(s, id);
+        return btn(a.icon + ' ' + a.name, function () {
+          var res = SYS.skirmishAction(s, id);
+          if (!res.ok) { toast(res.reason, 'bad'); return; }
+          self.persist(s); self.updateTopbar(); self.render();
+          if (res.finished) self.openSkirmishResult(res.result);
+          else self.openSkirmishBattle();
+        }, { cls: 'skirmish-action action-' + id, disabled: !available, cost: hint + (a.cost ? ' · ' + a.cost + ' Fokus' : '') });
+      }
+      body.appendChild(el('div', { class: 'skirmish-actions' }, [
+        actButton('angriff', 'kontert Ritual'),
+        actButton('block', 'kontert Hieb'),
+        actButton('magie', 'bricht Haltung'),
+        actButton('finisher', 'massiver Treffer + Heilung')
+      ]));
+      var history = el('div', { class: 'skirmish-log' });
+      (active.log || []).forEach(function (line) { history.appendChild(el('div', { text: line })); });
+      body.appendChild(history);
+      body.appendChild(el('div', { class: 'skirmish-foot' }, [
+        btn('🏳️ Rückzug', function () {
+          SYS.retreatSkirmish(s); self.persist(s); closeModal(); self.refresh();
+        }, { small: true, cls: 'btn-ghost' }),
+        el('span', { text: 'Falsche Reaktion bricht die Kombo.' })
+      ]));
+      openModal(status.mission.name, body, status.mission.icon, 'skirmish-modal battle');
+    },
+
+    openSkirmishResult: function (result) {
+      var self = this, status = SYS.skirmishStatus(this.state);
+      var body = el('div', { class: 'skirmish-result ' + (result.won ? 'won' : 'lost') }, [
+        el('div', { class: 'skirmish-result-icon', text: result.won ? '🏆' : '💥' }),
+        el('h4', { text: result.won ? 'Einsatz gewonnen!' : 'Linie durchbrochen' }),
+        el('p', { text: result.won ? ('Kombo ' + result.combo + ' · ' + result.rounds + ' Runden') : 'Kein dauerhafter Verlust. Eskalation wurde gesenkt.' }),
+        result.won ? el('div', { class: 'skirmish-loot', text: resultReward(result) }) : null,
+        el('div', { class: 'skirmish-result-meta', text: 'Eskalation ' + result.heatBefore + ' → ' + result.heatAfter + ' · Siegesserie ' + status.streak }),
+        el('div', { class: 'card-actions' }, [
+          btn('⚡ Nächster Einsatz', function () { self.openSkirmishHub(); }, { cls: 'btn-action' }),
+          btn('Zur Übersicht', function () { closeModal(); self.refresh(); }, { small: true })
+        ])
+      ]);
+      openModal(result.won ? 'Sieg' : 'Niederlage', body, result.won ? '🏆' : '💥', 'skirmish-modal result');
+    }
+  });
+})();

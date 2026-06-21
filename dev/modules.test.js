@@ -4,9 +4,9 @@ import { test, expect } from "bun:test";
 const root = import.meta.dir + '/..';
 const expectedOrder = [
   'js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js',
-  'js/systems.js', 'js/systems-combat.js', 'js/achievements.js',
+  'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/achievements.js',
   'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js',
-  'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/main.js'
+  'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/main.js'
 ];
 
 function scriptSources(html) {
@@ -27,19 +27,21 @@ test('klassische Scripts werden in fester Abhängigkeitsreihenfolge geladen und 
 test('Systemmodule bleiben DOM-frei und Kernmonolithen unter den vereinbarten Grenzen', async () => {
   const systems = await Bun.file(root + '/js/systems.js').text();
   const combat = await Bun.file(root + '/js/systems-combat.js').text();
+  const skirmish = await Bun.file(root + '/js/systems-skirmish.js').text();
   const ui = await Bun.file(root + '/js/ui.js').text();
   const adventure = await Bun.file(root + '/js/ui-adventure.js').text();
   const canvasCore = await Bun.file(root + '/js/render/canvas-core.js').text();
   const battleScene = await Bun.file(root + '/js/render/battle-scene.js').text();
   const adventureScene = await Bun.file(root + '/js/render/adventure-scene.js').text();
 
-  [systems, combat].forEach(function (source) {
+  [systems, combat, skirmish].forEach(function (source) {
     expect(source).not.toMatch(/\bdocument\s*[.[]/);
     expect(source).not.toContain('innerHTML');
   });
   expect(lines(systems)).toBeLessThan(2800);
   expect(lines(ui)).toBeLessThan(1900);
   expect(lines(combat)).toBeGreaterThan(350);
+  expect(lines(skirmish)).toBeGreaterThan(200);
   expect(lines(adventure)).toBeGreaterThan(600);
   expect(canvasCore).not.toContain('GameSystems.');
   expect(battleScene).toContain('GameBattleScene');

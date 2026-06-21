@@ -65,6 +65,7 @@
         ['🗡️', 'Expeditionen gewonnen', m(s, 'expeditionsWon') + ' / ' + m(s, 'expeditions')],
         ['🛡️', 'Armee-Feldzüge', fmt(m(s, 'armyVictories'))],
         ['♟️', 'Taktik-Siege', fmt(m(s, 'tacticalWins'))],
+        ['⚡', 'Sturmeinsätze', m(s, 'skirmishesWon') + ' / ' + m(s, 'skirmishesPlayed') + ' · Kombo ' + m(s, 'skirmishBestCombo')],
         ['🚧', 'Raids abgewehrt', '' + m(s, 'raidsRepelled')],
         ['😈', 'Rivalen besiegt', '' + arrLen(s, 'rivalsDefeated')],
         ['🌀', 'Echos geräumt', m(s, 'echoesCleared') + ' (Zyklus ' + num(s.echoes && s.echoes.cycle) + ')']

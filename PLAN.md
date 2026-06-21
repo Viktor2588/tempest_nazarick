@@ -249,9 +249,13 @@ Phase 36 – Reichspanorama und Management-UI materialisieren
 - **Nebenbei: vorbestehender Flaky-Test stabilisiert** — `dev/sim.test.js` verglich die Max-Power eines einzelnen Echo-Knotens (±8 % RNG-Varianz → ~1/6 Läufe rot, auch auf `main`). Jetzt Vergleich der Netz-Gesamtkraft (Varianz mittelt sich weg; deterministischer Zyklusfaktor wächst zuverlässig).
 - **Verifikation:** `bun test` → 36/36 Testfälle grün (inkl. neuem `dev/achievements.test.js` mit 8 Checks + Codex-Modal-DOM-Test); volle Suite 6×/sim.test.js 25× ohne Flake; `bun run balance` weiterhin sauber (Echo-Zyklen 1/3/5/10 streng steigend). Headless-Screenshots in dieser Code-Umgebung nicht ausgeführt (Chromium-Libs nicht verfügbar); UI durch jsdom-DOM-Test abgedeckt.
 
-[~] **Phase 40 – Sturmeinsätze: schnelle aktive Gefechte (in Arbeit, Worktree `/worktree/phase-40`)**
-- Das Spiel ist aktuell zu passiv. Eine sofort wiederholbare Action-Schleife soll Entscheidungen und direktes Feedback zwischen Aufbau-, Karten- und Rasterkampfphasen bringen.
-- Geplant: kurze Gefechte mit angekündigter Gegneraktion, drei direkten Kontern, Fokus-/Komboaufbau, Eskalationsstufen und sofortigen Belohnungen; prominent auf der Reichsübersicht statt hinter der Weltkarte verborgen.
+[x] **Phase 40 – Sturmeinsätze: schnelle aktive Gefechte (2026-06-21)** — direkte Action-Schleife zwischen Aufbau-, Karten- und Rasterkampfphasen:
+- **Sofort spielbar:** Prominente orange Sturmeinsatz-Karte direkt auf der Reichsübersicht; der Grenzalarm ist ab Spielstart offen, Bestienjagd und Dämonenvorstoß folgen mit Reichs-/Herrscherfortschritt. Laufende Einsätze lassen sich schließen, fortsetzen und speichern.
+- **Aktives Konterdreieck:** Der Gegner kündigt Hieb, gepanzerte Haltung oder Ritual an. Block, Magie bzw. Angriff kontern genau eine Absicht, verhindern Gegenschaden und bauen Kombo auf; falsche Reaktionen verursachen Schaden und brechen die Kombo.
+- **Fokus & Finisher:** Angriff/Block und perfekte Konter erzeugen Fokus. Bei 5 Fokus wird „Verschlingen" als massiver Treffer mit Heilung frei. Maximal 14 Runden verhindern endloses Abwarten; Rückzug bleibt verlustfrei.
+- **Wiederspielbarkeit:** Siege steigern Siegesserie und Eskalation bis Stufe 8; Gegnerkraft und unmittelbare Ressourcen-/EP-Beute wachsen mit. Niederlagen senken die Eskalation ohne dauerhafte Truppenverluste. Werte erscheinen im Statistik-Dashboard.
+- **Architektur/Save/Offline:** DOM-freies `systems-skirmish.js` und getrenntes `ui-action.js`; Save-Schema **v11** normalisiert laufende Gefechte, PWA-App-Shell **v6** cached beide Module. Handbuch und README nachgezogen.
+- **Verifikation:** `bun test` → **50/50** grün (neu: 8 Sturmeinsatz-Tests; DOM-Test 71 Checks), `bun run balance` unverändert sauber. Echter Chromium-Smoke-Test unter `file://` bei 390×844 und 1440×900: vier Aktionen bedienbar, kein Browserfehler und keine horizontale Überbreite; UI visuell auf beiden Größen geprüft.
 
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.

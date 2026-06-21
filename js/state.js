@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 10;
+  var VERSION = 11;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -116,6 +116,7 @@
       nextEventTick: 0,
       activeEvent: null,
       affinity: null,
+      skirmish: { active: null, heat: 0, streak: 0, bestCombo: 0, lastResult: null },
       uidCounter: 0,
       seenUnlocks: [],
       questProgress: 0,
@@ -123,7 +124,7 @@
       seenSpecies: [],
       settings: { watch: false, watchDetailed: false, watchCooldownUntil: 0, watchHistory: [], effects: 'full' },
       log: [],
-      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, seelenGesamt: 0 }
+      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, skirmishesPlayed: 0, skirmishesWon: 0, skirmishBestCombo: 0, seelenGesamt: 0 }
     };
     var slime = newCreature(s, 'schleim');
     var goblins = newCreature(s, 'goblin');
@@ -247,6 +248,35 @@
     fill(s.settings, def.settings);
     if (!Array.isArray(s.settings.watchHistory)) s.settings.watchHistory = [];
     if (['off', 'reduced', 'full'].indexOf(s.settings.effects) < 0) s.settings.effects = 'full';
+    // Sturmeinsätze v11: laufende Gefechte bleiben speicherbar, beschädigte
+    // Werte werden defensiv begrenzt. Die Systemlogik validiert Missions-IDs.
+    if (!s.skirmish || typeof s.skirmish !== 'object' || Array.isArray(s.skirmish)) s.skirmish = JSON.parse(JSON.stringify(def.skirmish));
+    fill(s.skirmish, def.skirmish);
+    s.skirmish.heat = Math.max(0, Math.min(8, Math.floor(Number(s.skirmish.heat) || 0)));
+    s.skirmish.streak = Math.max(0, Math.floor(Number(s.skirmish.streak) || 0));
+    s.skirmish.bestCombo = Math.max(0, Math.floor(Number(s.skirmish.bestCombo) || 0));
+    if (!s.skirmish.lastResult || typeof s.skirmish.lastResult !== 'object' || Array.isArray(s.skirmish.lastResult)) s.skirmish.lastResult = null;
+    if (s.skirmish.active && typeof s.skirmish.active === 'object') {
+      var sa = s.skirmish.active;
+      var skirmishNumbers = ['round', 'maxRounds', 'heroHp', 'heroMaxHp', 'heroAttack', 'enemyHp', 'enemyMaxHp', 'enemyAttack', 'focus', 'combo', 'bestCombo', 'seed'];
+      skirmishNumbers.forEach(function (key) {
+        sa[key] = Number(sa[key]);
+      });
+      if (!sa.missionId || skirmishNumbers.some(function (key) { return !isFinite(sa[key]); })) s.skirmish.active = null;
+      else {
+        sa.round = Math.max(1, Math.floor(sa.round || 1));
+        sa.maxRounds = Math.max(sa.round, Math.floor(sa.maxRounds || 14));
+        sa.heroMaxHp = Math.max(1, sa.heroMaxHp || sa.heroHp || 1);
+        sa.enemyMaxHp = Math.max(1, sa.enemyMaxHp || sa.enemyHp || 1);
+        sa.heroHp = Math.max(0, Math.min(sa.heroMaxHp, sa.heroHp));
+        sa.enemyHp = Math.max(0, Math.min(sa.enemyMaxHp, sa.enemyHp));
+        sa.focus = Math.max(0, Math.min(5, Math.floor(sa.focus || 0)));
+        sa.combo = Math.max(0, Math.floor(sa.combo || 0));
+        sa.bestCombo = Math.max(sa.combo, Math.floor(sa.bestCombo || 0));
+        if (!Array.isArray(sa.log)) sa.log = [];
+        sa.log = sa.log.slice(0, 7).map(function (line) { return String(line); });
+      }
+    } else s.skirmish.active = null;
     // Alle bekannten Diablo-artigen Positionen ergänzen, ohne alte Ausrüstung zu verlieren.
     [s.herrscher].concat(s.creatures || []).forEach(function (holder) {
       if (!holder.equipment) holder.equipment = {};

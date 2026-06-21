@@ -14,15 +14,16 @@ jedem Bereich außerdem einen **ℹ️-Knopf** mit einer Kurzerklärung.
 4. [Kreaturen](#kreaturen)
 5. [Magie & Forschung](#magie--forschung)
 6. [Schmiede & Ausrüstung](#schmiede--ausrüstung)
-7. [Karte, Expeditionen & taktischer Kampf](#karte-expeditionen--taktischer-kampf)
-8. [Armeegruppen & Weltkarte](#armeegruppen--weltkarte)
-9. [Echo-Territorien](#echo-territorien)
-10. [Rivalen & Bedrohung](#rivalen--bedrohung)
-11. [Ereignisse](#ereignisse)
-12. [Herrscher-Progression](#herrscher-progression)
-13. [Chimära-Fusion](#chimära-fusion)
-14. [Zuschauer-Modus](#zuschauer-modus)
-15. [Speichern & Tipps](#speichern--tipps)
+7. [Sturmeinsätze](#sturmeinsätze)
+8. [Karte, Expeditionen & taktischer Kampf](#karte-expeditionen--taktischer-kampf)
+9. [Armeegruppen & Weltkarte](#armeegruppen--weltkarte)
+10. [Echo-Territorien](#echo-territorien)
+11. [Rivalen & Bedrohung](#rivalen--bedrohung)
+12. [Ereignisse](#ereignisse)
+13. [Herrscher-Progression](#herrscher-progression)
+14. [Chimära-Fusion](#chimära-fusion)
+15. [Zuschauer-Modus](#zuschauer-modus)
+16. [Speichern & Tipps](#speichern--tipps)
 
 ---
 
@@ -47,6 +48,8 @@ Ein roter Faden für den Anfang:
    baubar; damit öffnen sich die Tabs *Magie* und *Schmiede*.
 7. **Armee aufstellen** – eine benannte Kreatur als Anführer wählen, Truppenkontingente
    rekrutieren und die sichtbare Armeefigur von Tempest aus über die Weltkarte bewegen.
+8. **Direkt kämpfen** – die Sturmeinsatz-Karte auf der Übersicht ist von Beginn an aktiv.
+   Lies die Gegnerabsicht, kontere sie und baue Fokus für den Finisher auf.
 
 ---
 
@@ -192,6 +195,28 @@ Im Tab *Schmiede* (frei nach Bau der **Schmiede**).
 
 ---
 
+## Sturmeinsätze
+
+Die orange **Sturmeinsatz-Karte** steht direkt auf der Übersicht und ist ab Spielstart
+verfügbar. Sie ist die schnelle, aktive Alternative zu Produktionsticks und langen
+Feldzügen: Ein Gefecht dauert nur wenige Entscheidungen und verursacht keine dauerhaften
+Truppenverluste.
+
+- **Absicht lesen:** Der Gegner kündigt seinen nächsten Zug deutlich an.
+- **Richtig kontern:** 🛡️ Block stoppt den wilden Hieb, ✨ Magie bricht die gepanzerte
+  Haltung und ⚔️ Angriff unterbricht das dunkle Ritual. Ein richtiger Konter verhindert
+  Gegenschaden und erhöht die Kombo.
+- **Fokus aufbauen:** Angriff und Block erzeugen Fokus; perfekte Konter geben zusätzlichen
+  Fokus. Bei 5 Fokus wird **💥 Verschlingen** frei – ein massiver Treffer mit Heilung.
+- **Eskalation:** Jeder Sieg erhöht die Eskalationsstufe. Gegner werden stärker, die Beute
+  steigt aber ebenfalls. Eine Niederlage senkt die Eskalation und beendet die Siegesserie.
+- **Missionen:** Grenzalarm ist sofort offen; Bestienjagd und Dämonenvorstoß werden durch
+  Reichs- bzw. Herrscherfortschritt freigeschaltet.
+- **Speicherbar:** Ein laufender Einsatz bleibt beim Schließen des Modals und nach dem
+  Neuladen erhalten. Rückzug ist jederzeit ohne Ressourcenverlust möglich.
+
+---
+
 ## Karte, Expeditionen & taktischer Kampf
 
 Im Tab *Karte* (frei nach der ersten Namensgebung).
@@ -316,8 +341,8 @@ Dein Herrscher (oben links) wächst über **Level** (Cap 60) und **Evolutionsstu
 | 👹 Wahrer Dämonenlord | 35 | 2.000 |
 | 🌌 Katastrophe | 50 | 6.000 |
 
-- **Herrscher-EP** kommen aus **Expeditionen** und aus dem **Opfern von Seelen** (1 Seele = 2
-  EP; im Herrscher-Modal).
+- **Herrscher-EP** kommen aus **Sturmeinsätzen**, **Expeditionen** und aus dem **Opfern von
+  Seelen** (1 Seele = 2 EP; im Herrscher-Modal).
 - Jede Stufe gibt **reichsweite Boni** und schaltet Dinge frei: höheren Beschwörungsrang,
   **Affinität** (ab Stufe 2), **Fusion** (ab Stufe 3) und tiefere Forschung.
 

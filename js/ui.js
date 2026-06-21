@@ -410,6 +410,9 @@
           ])
         ]));
 
+        // Schnelle aktive Gefechtsschleife (Phase 40, aus ui-action.js).
+        if (self.buildSkirmishCard) box.appendChild(self.buildSkirmishCard());
+
         // Aktuelles Ziel (geführte Aufgabenkette)
         var aq = SYS.activeQuest(s);
         if (aq) {

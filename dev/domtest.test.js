@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -127,6 +127,25 @@ tryRender('Einstellungs-Modal (Effektstufe umschaltbar)', function () {
   if (s.settings.effects !== 'off') throw new Error('Effektstufe nicht übernommen');
   s.settings.effects = prev; // Zustand für Folgetests wiederherstellen
   document.querySelector('.modal-close').click();
+});
+tryRender('Sturmeinsatz-Karte und aktives Konter-Gefecht', function () {
+  window.GameUI.activeTab = 'uebersicht'; window.GameUI.render();
+  if (!document.querySelector('#screen .skirmish-card')) throw new Error('keine prominente Sturmeinsatz-Karte');
+  window.GameUI.openSkirmishHub();
+  if (document.querySelectorAll('#modal-root .skirmish-mission').length !== 3) throw new Error('Missionen fehlen');
+  var startBtn = Array.prototype.filter.call(document.querySelectorAll('#modal-root .skirmish-mission .btn'), function (b) { return b.textContent.indexOf('Start') >= 0 && !b.hasAttribute('disabled'); })[0];
+  if (!startBtn) throw new Error('kein spielbarer Einsatz');
+  startBtn.click();
+  if (!s.skirmish.active || !document.querySelector('#modal-root .skirmish-battle')) throw new Error('Gefecht nicht gestartet');
+  var counter = window.GameSystems.skirmishStatus(s).intent.counter;
+  var actionBtn = document.querySelector('#modal-root .action-' + counter);
+  if (!actionBtn) throw new Error('Konteraktion fehlt');
+  actionBtn.click();
+  if (!s.skirmish.active || s.skirmish.active.combo !== 1) throw new Error('Konter baut keine Kombo auf');
+  var retreat = Array.prototype.filter.call(document.querySelectorAll('#modal-root .btn'), function (b) { return b.textContent.indexOf('Rückzug') >= 0; })[0];
+  if (!retreat) throw new Error('Rückzug fehlt');
+  retreat.click();
+  if (s.skirmish.active) throw new Error('Rückzug beendet Einsatz nicht');
 });
 tryRender('Last-Epoch-artiger Herrscher-Talentbaum', function () {
   s.herrscher.level = Math.max(8, s.herrscher.level);
