@@ -229,6 +229,31 @@ Truppenverluste.
 
 ---
 
+## Echtzeit-Gefecht (Action)
+
+Die **⚔️ Echtzeit-Gefecht-Karte** auf der Übersicht (ab freigeschalteter Karte) ist der
+schnellste, direkteste Kampf: kein Rundenwarten – du steuerst deinen Helden fortlaufend in
+Echtzeit gegen anstürmende Gegnerwellen. Ein Gefecht dauert höchstens 90 Sekunden.
+
+- **Steuerung:** Auf dem Handy bewegst du dich per **Zieh-Joystick** (linke Bildhälfte), am PC
+  per **WASD/Pfeiltasten**. **Angriff läuft automatisch**, sobald ein Gegner in Reichweite ist.
+- **Ausweichrolle:** **⟳-Taste** bzw. **Leertaste** – ein kurzer Hechtsprung mit kurzem
+  Unverwundbarkeitsfenster. Der Schlüssel zum Überleben.
+- **Telegraf lesen:** Gegner kündigen jeden Schlag mit einer **roten Gefahrenzone** an, die
+  sich füllt. Renn heraus oder rolle hindurch, bevor sie zuschlägt – Können statt Zufall.
+- **Fähigkeiten:** Drei Slots mit **Cooldown** (kein Mana) je nach Rolle deines Anführers –
+  Nahkampfwirbel, Fernschuss, Feuer (Brand), Frost (Verlangsamung) oder Selbstheilung. Tasten
+  **1–3** oder die Steuertasten; die Bühne zeigt den Cooldown als Ring.
+- **Gegnertypen:** **Stürmer** rücken vor, **Werfer** halten Abstand, **Brecher** schlagen
+  langsam, aber wuchtig zu. In starken Regionen wartet ein **Boss**, der unter 50 % LP in eine
+  schnellere **Wut-Phase** wechselt.
+- **Combo/Schwung:** Treffer ohne selbst Schaden zu nehmen steigern deinen Schaden; ein
+  kassierter Treffer setzt die Combo zurück.
+- **Beute:** Sieg vergibt dieselbe Regionsbeute + Herrscher-EP wie der taktische Kampf (mehr
+  Rest-LP → mehr Beute) und erobert die Region. Rückzug ist jederzeit verlustfrei.
+
+---
+
 ## Karte, Expeditionen & taktischer Kampf
 
 Im Tab *Karte* (frei nach der ersten Namensgebung).

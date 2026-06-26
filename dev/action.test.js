@@ -231,6 +231,61 @@ test("Brand-Status verursacht Schaden über Zeit (DoT)", () => {
   if (still) expect(still.hp).toBeLessThan(hp0);   // DoT hat geschadet (oder Gegner ist daran gestorben)
 });
 
+test("Gegnervielfalt: mehrere Verhaltenstypen erscheinen", () => {
+  const s = setup(8, 1);
+  A.start(s, GD.regions[Math.min(5, GD.regions.length - 1)].id, s.creatures.map((c) => c.uid), true, 13);
+  const kinds = {};
+  A.renderView(s).enemies.forEach((e) => { kinds[e.kind] = true; });
+  expect(Object.keys(kinds).length).toBeGreaterThanOrEqual(2);   // nicht nur ein Typ
+});
+
+test("Boss in starker Region hat eine Wut-Phase unter 50 % LP", () => {
+  // stärkste Region → garantiert Boss
+  const s = setup(20, 3);
+  A.start(s, GD.regions[GD.regions.length - 1].id, s.creatures.map((c) => c.uid), true, 21);
+  const boss = A.renderView(s).enemies.find((e) => e.boss);
+  expect(boss).toBeTruthy();
+  expect(boss.enraged).toBe(false);
+  // Boss unter 50 % bringen → Enrage schaltet sich beim nächsten Tick ein
+  const raw = s.actionBattle.enemies.find((e) => e.boss);
+  raw.hp = Math.floor(raw.maxHp * 0.4);
+  A.setIntent(s, { moveX: 0, moveY: 0, attack: false }); A.step(s, A.STEP_MS);
+  const after = s.actionBattle.enemies.find((e) => e.boss);
+  if (after) expect(after.enraged).toBe(true);
+});
+
+test("Combo/Schwung steigt mit Treffern und bricht beim Schaden", () => {
+  const s = setup(20, 3);
+  A.start(s, 'wald', s.creatures.map((c) => c.uid), true, 99);
+  // auf Gegner zulaufen und angreifen → Combo wächst
+  for (let i = 0; i < 80 && A.renderView(s).status === 'active' && A.renderView(s).combo < 3; i++) {
+    const v = A.renderView(s), e = nearest(v);
+    A.setIntent(s, e ? { moveX: e.x - v.hero.x, moveY: e.y - v.hero.y, attack: true } : { moveX: 0, moveY: 0, attack: true });
+    A.step(s, A.STEP_MS);
+  }
+  expect(A.renderView(s).combo).toBeGreaterThan(1);
+  // Treffer einstecken: Held neben einen Gegner stellen, stehen bleiben → Schwung bricht auf 0
+  if (A.renderView(s).status === 'active') {
+    let broke = false;
+    for (let i = 0; i < 200 && A.renderView(s).status === 'active'; i++) {
+      A.setIntent(s, { moveX: 0, moveY: 0, attack: false }); A.step(s, A.STEP_MS);
+      if (A.renderView(s).combo === 0) { broke = true; break; }
+    }
+    expect(broke).toBe(true);
+  }
+});
+
+test("autoResolve: kopfloses Auto-Gefecht terminiert, wertet aus und ist deterministisch", () => {
+  const a = setup(22, 3), b = setup(22, 3);
+  const ra = A.autoResolve(a, 'wald', a.creatures.map((c) => c.uid), true, 8);
+  const rb = A.autoResolve(b, 'wald', b.creatures.map((c) => c.uid), true, 8);
+  expect(typeof ra.won).toBe('boolean');
+  expect(ra.won).toBe(rb.won);          // gleicher Seed → gleiches Ergebnis
+  expect(a.actionBattle).toBeNull();    // Gefecht aufgelöst
+  // starker Held räumt die schwache Region
+  expect(ra.won).toBe(true);
+});
+
 test("Rückzug beendet das Gefecht", () => {
   const s = setup(5, 0);
   A.start(s, 'wald', s.creatures.map((c) => c.uid), true, 1);

@@ -95,12 +95,14 @@ js/
                     Skill-Meisterschaft, Auto-Modus, Freischaltungen/Gating
   systems-combat.js Taktischer 7×5-Elementkampf; erweitert GameSystems
   systems-skirmish.js Sturmeinsätze: Profile/Bossphasen, Konter, Haltungen, Ziele und Belohnungen
+  systems-action.js Echtzeit-Action-Kampf: 30-Hz-Fixed-Step-Sim, Telegraf/Ausweichrolle, Hotbar, Gegnertypen + Boss, Combo (GameActionCombat)
   art-data.js       Reine Atlas-/Asset-Metadaten für die Canvas-Szenen
-  render/           Begrenzter DPR-/FPS-Canvas-Core, Animationstimeline, isometrische Kampf- und Abenteuerkartenszene
+  render/           Begrenzter DPR-/FPS-Canvas-Core, Animationstimeline, isometrische Kampf-, Abenteuerkarten- und Echtzeit-Action-Szene
   ui.js             UI-Kern: Views, Management-Modals und gemeinsame DOM-Helfer
   ui-adventure.js   Karten-, Armee-, Echo-, Expeditions- und Kampf-UI; erweitert GameUI
   ui-progress.js    Kompendium, Erfolge, Statistik und Bestiarium
   ui-action.js      Sturmeinsatz-Karte, Missionswahl und kompaktes Action-Gefechtsmodal
+  ui-action-combat.js Echtzeit-Gefecht-Karte + Canvas-Modal mit Touch-/Tastatursteuerung
   main.js           Init, Spiel-Loop (1 Tick/Sek.), Offline-Fortschritt, Auto-Save
 dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
   sim.test.js       Headless-Logiktest (Bun, ohne DOM)

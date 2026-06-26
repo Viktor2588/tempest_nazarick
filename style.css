@@ -2003,6 +2003,14 @@ select.btn { text-align: left; min-height: 40px; }
 .tb-hint { font-size: 11px; margin-bottom: 8px; }
 .tb-log { display: flex; flex-direction: column; gap: 2px; max-height: 120px; overflow-y: auto; font-size: 11px; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 7px; margin-bottom: 8px; }
 .tb-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+/* Echtzeit-Action-Gefecht (Phase 45) */
+.ac-modal .modal, .modal.ac-modal { max-width: 760px; }
+.ac-stage-wrap { margin-bottom: 8px; }
+.ac-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.ac-controls .ac-btn { flex: 1 1 auto; min-height: 44px; min-width: 92px; }
+.ac-dodge { background: rgba(110,200,255,.16); border-color: #68d7ff; }
+.ac-hint { font-size: 11px; margin-bottom: 8px; color: var(--text-dim); }
+
 .tb-result { text-align: center; }
 .tb-result-icon { font-size: 44px; }
 .tb-result.won h4 { color: var(--good); }

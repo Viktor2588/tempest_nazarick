@@ -102,26 +102,41 @@
     };
   }
 
+  // Gegnertypen mit lesbar unterschiedlichem Verhalten (alle telegrafieren → ausweichbar).
+  var ENEMY_KINDS = {
+    verfolger: { label: 'Stürmer', speed: [13, 19], hp: 1.6, atk: 1.0, atkRate: 0.85, windup: 0.55, dangerR: 6, reach: ENEMY_R + HERO_R + 3, prefer: 0, r: ENEMY_R, icons: ['👹', '🐗', '🦂', '🕷️'] },
+    werfer: { label: 'Werfer', speed: [9, 13], hp: 1.2, atk: 0.95, atkRate: 1.1, windup: 0.7, dangerR: 7, reach: 34, prefer: 26, r: 2.0, icons: ['🏹', '🦇', '🐍', '💀'] },
+    brecher: { label: 'Brecher', speed: [8, 11], hp: 2.6, atk: 1.7, atkRate: 1.6, windup: 0.95, dangerR: 11, reach: ENEMY_R + HERO_R + 6, prefer: 0, r: 3.0, icons: ['👺', '🗿', '🐂', '👿'] }
+  };
+  function kindParams(kind) { return ENEMY_KINDS[kind] || ENEMY_KINDS.verfolger; }
+
   function buildEnemies(state, region, rng) {
-    var count = clamp(2 + Math.floor(region.power / 55), 2, 8);
+    var count = clamp(2 + Math.floor(region.power / 55), 2, 7);
     var per = Math.max(8, Math.round(region.power / count));
-    var enemies = [];
+    var order = ['verfolger', 'werfer', 'brecher'], enemies = [];
     for (var i = 0; i < count; i++) {
-      var hp = Math.round(per * (1.6 + rng() * 0.5));
-      var atk = Math.round(per * (0.45 + rng() * 0.2));
-      // gleichmäßig auf der rechten Hälfte verteilt
-      var ex = AW * (0.62 + rng() * 0.34);
+      var kind = order[i % order.length], k = kindParams(kind);
+      var hp = Math.round(per * k.hp * (1 + rng() * 0.25));
+      var atk = Math.round(per * 0.45 * k.atk);
+      var ex = AW * (0.58 + rng() * 0.38);
       var ey = AH * (0.12 + (i + 0.5) / count * 0.76);
       enemies.push({
-        side: 'enemy', kind: 'verfolger', key: 'e' + i,
-        name: region.icon + ' Verfolger ' + (i + 1), icon: ['👹', '🦇', '🐍', '💀', '🦂', '👺', '🐗', '🕷️'][i % 8],
-        x: ex, y: ey, r: ENEMY_R,
+        side: 'enemy', kind: kind, key: 'e' + i,
+        name: region.icon + ' ' + k.label + ' ' + (i + 1), icon: k.icons[i % k.icons.length],
+        x: ex, y: ey, r: k.r,
         hp: hp, maxHp: hp, atk: atk, def: Math.round(per * 0.28),
-        speed: 13 + rng() * 6, atkCd: 0, atkRate: 0.85, dead: false,
-        state: 'chase', windup: 0, dangerX: 0, dangerY: 0, dangerR: 6,
-        attackReach: ENEMY_R + HERO_R + 3, statuses: [],
-        weakness: ['feuer', 'wasser', 'wind', null][i % 4], element: 'physisch'
+        speed: k.speed[0] + rng() * (k.speed[1] - k.speed[0]), atkCd: 0, atkRate: k.atkRate, dead: false,
+        state: 'chase', windup: 0, dangerX: 0, dangerY: 0, dangerR: k.dangerR, windupTime: k.windup,
+        attackReach: k.reach, preferRange: k.prefer, statuses: [],
+        weakness: ['feuer', 'wasser', 'wind', null][i % 4], element: 'physisch', boss: false, enraged: false
       });
+    }
+    // Boss in stärkeren Regionen: verstärkt den letzten Gegner (eigene Phase < 50 % LP).
+    if (region.power >= 200 && enemies.length) {
+      var bo = enemies[enemies.length - 1], bk = kindParams('brecher');
+      bo.boss = true; bo.kind = 'brecher'; bo.name = region.icon + ' ' + region.name + '-Fürst'; bo.icon = '👑';
+      bo.r = 3.4; bo.hp = Math.round(bo.maxHp * 2.4); bo.maxHp = bo.hp; bo.atk = Math.round(bo.atk * 1.4);
+      bo.dangerR = bk.dangerR; bo.windupTime = bk.windup; bo.attackReach = bk.reach; bo.preferRange = 0; bo.speed = bk.speed[0];
     }
     return enemies;
   }
@@ -145,6 +160,10 @@
 
   function alog(b, text) { b.log = b.log || []; b.log.unshift(text); b.log = b.log.slice(0, 6); }
 
+  // Combo/Schwung: Treffer ohne Schaden zu nehmen steigern den Schaden (gedeckelt); ein Treffer bricht sie.
+  function comboMult(b) { return 1 + Math.min(b.combo || 0, 25) * 0.012; }
+  function addCombo(b, n) { b.combo = (b.combo || 0) + n; if (b.combo > (b.comboBest || 0)) b.comboBest = b.combo; }
+
   // Hotbar-Fähigkeit feuern (Auto-Ziel). Gibt true zurück, wenn ausgelöst.
   function fireAbility(b, idx) {
     var hero = b.hero, slot = hero.hotbar[idx];
@@ -161,10 +180,11 @@
     var hitList = slot.aoeR > 0 ? b.enemies.filter(function (e) { return !e.dead && dist({ x: tgt.x, y: tgt.y }, e) <= slot.aoeR; }) : [tgt];
     var killed = 0;
     hitList.forEach(function (e) {
-      var dmg = dealDamage(e, stat * slot.power * elementMult(slot.element, e) * (0.9 + b.rng() * 0.2), enemyDef(e));
+      var dmg = dealDamage(e, stat * slot.power * comboMult(b) * elementMult(slot.element, e) * (0.9 + b.rng() * 0.2), enemyDef(e));
       if (slot.status && !e.dead) addStatus(e, slot.status);
       if (e.dead) killed++;
     });
+    addCombo(b, hitList.length);
     alog(b, hero.icon + ' ' + slot.icon + ' ' + slot.name + (hitList.length > 1 ? ' (×' + hitList.length + ')' : '') + (killed ? ' ☠️' + killed : ''));
     return true;
   }
@@ -210,8 +230,8 @@
       if (tgt && dist(hero, tgt) <= hero.atkRange + tgt.r) {
         hero.atkCd = hero.atkRate;
         hero.facing = tgt.x >= hero.x ? 1 : -1;
-        var dmg = dealDamage(tgt, hero.atkDamage * (0.9 + b.rng() * 0.2), enemyDef(tgt));
-        hero.hits++;
+        var dmg = dealDamage(tgt, hero.atkDamage * comboMult(b) * (0.9 + b.rng() * 0.2), enemyDef(tgt));
+        hero.hits++; addCombo(b, 1);
         if (tgt.dead) alog(b, hero.icon + ' erlegt ' + tgt.name + ' (−' + dmg + ').');
       }
     }
@@ -234,6 +254,11 @@
       if (e.hp <= 0) { e.dead = true; alog(b, '🔥 ' + e.name + ' erliegt dem Statuseffekt.'); return; }
       var spd = e.speed * (1 - slow);
       e.atkCd = Math.max(0, e.atkCd - dt);
+      // Boss-Phase unter 50 % LP: einmalige Entfesselung (schneller, härter, größere Zone).
+      if (e.boss && !e.enraged && e.hp <= e.maxHp * 0.5) {
+        e.enraged = true; e.atkRate *= 0.6; e.atk = round(e.atk * 1.25); e.dangerR += 2;
+        alog(b, '⚡ ' + e.name + ' entfesselt seine Wut!');
+      }
       if (e.state === 'windup') {
         // Telegraf läuft: Gegner ist festgelegt (steht), Gefahrenzone bleibt am angekündigten Punkt.
         e.windup -= dt;
@@ -241,7 +266,7 @@
           e.state = 'chase'; e.atkCd = e.atkRate;
           var inZone = dist({ x: hero.x, y: hero.y }, { x: e.dangerX, y: e.dangerY }) <= e.dangerR;
           if (inZone && hero.invuln <= 0) {
-            var hd = dealDamage(hero, e.atk, hero.def);
+            var hd = dealDamage(hero, e.atk, hero.def); b.combo = 0;   // getroffen → Schwung bricht
             if (hero.dead) alog(b, '💀 ' + hero.name + ' fällt durch ' + e.name + ' (−' + hd + ').');
           }
         }
@@ -250,12 +275,17 @@
       var d = dist(e, hero);
       if (d <= e.attackReach && e.atkCd <= 0) {
         // Schlag ankündigen: Gefahrenzone am aktuellen Heldenpunkt verankern (Wegrennen/Ausweichen kontert).
-        e.state = 'windup'; e.windup = WINDUP_TIME; e.dangerX = hero.x; e.dangerY = hero.y;
+        e.state = 'windup'; e.windup = e.windupTime || WINDUP_TIME; e.dangerX = hero.x; e.dangerY = hero.y;
       } else {
-        var dx = hero.x - e.x, dy = hero.y - e.y, dl = d || 1;
-        e.x += (dx / dl) * spd * dt;
-        e.y += (dy / dl) * spd * dt;
-        clampPos(e, e.r);
+        // Werfer halten Abstand (kiten); Stürmer/Brecher rücken vor.
+        var dir = 1;
+        if (e.preferRange > 0) { if (d < e.preferRange - 3) dir = -1; else if (d <= e.preferRange + 3) dir = 0; }
+        if (dir !== 0) {
+          var dx = (hero.x - e.x) * dir, dy = (hero.y - e.y) * dir, dl = d || 1;
+          e.x += (dx / dl) * spd * dt;
+          e.y += (dy / dl) * spd * dt;
+          clampPos(e, e.r);
+        }
       }
     });
 
@@ -309,7 +339,7 @@
     var rng = makeRng(seed);
     var enemies = buildEnemies(state, region, rng);
     var b = {
-      regionId: regionId, seed: seed, status: 'active', elapsed: 0, acc: 0,
+      regionId: regionId, seed: seed, status: 'active', elapsed: 0, acc: 0, combo: 0, comboBest: 0,
       hero: hero, enemies: enemies, intent: { moveX: 0, moveY: 0, attack: true, dodge: false, skills: [] },
       rulerJoined: !!rulerJoin, log: ['⚔️ Echtzeit-Gefecht um ' + region.name + ' beginnt!']
     };
@@ -337,17 +367,36 @@
   }
   function abort(state) { state.actionBattle = null; return { ok: true }; }
 
+  // Kopfloses Auto-Gefecht für Zuschauer-/Auto-Modus: startet, spielt mit simpler KI
+  // (auf Ziel zu, ausweichen wenn eine Zone gleich trifft, bereite Skills feuern) und wertet aus.
+  // Deterministisch über den Seed, feste Ticks. Gibt das applyResult-Ergebnis zurück.
+  function autoResolve(state, regionId, uids, rulerJoin, seed) {
+    var r = start(state, regionId, uids, rulerJoin, seed); if (!r.ok) return r;
+    var b = state.actionBattle, guard = 0;
+    while (b.status === 'active' && guard++ < 20000) {
+      var hero = b.hero, tgt = nearestEnemy(b), intent = { moveX: 0, moveY: 0, attack: true, skills: [] };
+      if (tgt) { intent.moveX = tgt.x - hero.x; intent.moveY = tgt.y - hero.y; }
+      var threat = null;
+      b.enemies.forEach(function (e) { if (e.state === 'windup' && e.windup <= 0.15 && dist(hero, { x: e.dangerX, y: e.dangerY }) <= e.dangerR) threat = e; });
+      if (threat && hero.dodgeCd <= 0) { intent.dodge = true; intent.moveX = hero.x - threat.dangerX; intent.moveY = hero.y - threat.dangerY; }
+      hero.hotbar.forEach(function (slot, i) { if (slot.cdLeft <= 0 && slot.kind === 'damage' && tgt && dist(hero, tgt) <= slot.range) intent.skills.push(i); });
+      setIntent(state, intent);
+      step(state, STEP_MS);
+    }
+    return applyResult(state);
+  }
+
   // ---------- Render-View (reine Kopie für die UI; verändert nie Zustand) ----------
   function renderView(state) {
     var b = rehydrate(state); if (!b) return null;
     var h = b.hero;
     return {
-      w: AW, h: AH, status: b.status, regionId: b.regionId, elapsed: round(b.elapsed * 10) / 10,
+      w: AW, h: AH, status: b.status, regionId: b.regionId, elapsed: round(b.elapsed * 10) / 10, combo: b.combo || 0, comboBest: b.comboBest || 0,
       hero: { name: h.name, icon: h.icon, role: h.role, x: round(h.x * 100) / 100, y: round(h.y * 100) / 100, r: h.r, hp: h.hp, maxHp: h.maxHp, facing: h.facing, atkRange: h.atkRange, atkCd: round(h.atkCd * 100) / 100, invuln: round(h.invuln * 100) / 100, dodgeCd: round(h.dodgeCd * 100) / 100, dashing: h.dashT > 0,
         cooldowns: h.hotbar.map(function (s) { return { id: s.id, name: s.name, icon: s.icon, kind: s.kind, cdLeft: round(s.cdLeft * 100) / 100, cd: s.cd, ready: s.cdLeft <= 0 }; }) },
       enemies: b.enemies.map(function (e) {
-        var v = { key: e.key, name: e.name, icon: e.icon, kind: e.kind, x: round(e.x * 100) / 100, y: round(e.y * 100) / 100, r: e.r, hp: e.hp, maxHp: e.maxHp, state: e.state, statuses: (e.statuses || []).map(function (s) { return s.id; }) };
-        if (e.state === 'windup') { v.windup = round(e.windup * 100) / 100; v.windupMax = WINDUP_TIME; v.danger = { x: round(e.dangerX * 100) / 100, y: round(e.dangerY * 100) / 100, r: e.dangerR }; }
+        var v = { key: e.key, name: e.name, icon: e.icon, kind: e.kind, boss: !!e.boss, enraged: !!e.enraged, x: round(e.x * 100) / 100, y: round(e.y * 100) / 100, r: e.r, hp: e.hp, maxHp: e.maxHp, state: e.state, statuses: (e.statuses || []).map(function (s) { return s.id; }) };
+        if (e.state === 'windup') { v.windup = round(e.windup * 100) / 100; v.windupMax = e.windupTime || WINDUP_TIME; v.danger = { x: round(e.dangerX * 100) / 100, y: round(e.dangerY * 100) / 100, r: e.dangerR }; }
         return v;
       }),
       log: (b.log || []).slice()
@@ -356,7 +405,7 @@
 
   root.GameActionCombat = {
     AW: AW, AH: AH, STEP_MS: STEP_MS, MAX_SECONDS: MAX_SECONDS, ABILITIES: ACTION_ABILITIES,
-    start: start, step: step, setIntent: setIntent, rehydrate: rehydrate,
+    start: start, step: step, setIntent: setIntent, rehydrate: rehydrate, autoResolve: autoResolve,
     renderView: renderView, applyResult: applyResult, abort: abort,
     nearestEnemy: function (state) { var b = rehydrate(state); return b ? nearestEnemy(b) : null; }
   };

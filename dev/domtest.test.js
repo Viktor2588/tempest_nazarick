@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/systems-action.js', 'js/achievements.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/render/action-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/ui-action-combat.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -198,6 +198,23 @@ tryRender('Tactical-RPG-Schlacht (Gitter + Aktionen)', function () {
   }
   window.GameBattle.abortBattle(s); s.tacticalBattle = null;
   var close = document.querySelector('.modal-close'); if (close) close.click();
+  window.GameUI.activeTab = 'uebersicht'; window.GameUI.render();
+});
+tryRender('Echtzeit-Action-Gefecht (Übersichtskarte + Canvas-Modal)', function () {
+  s.claimedRegions = s.claimedRegions.length ? s.claimedRegions : ['wald'];
+  if (!s.metrics) s.metrics = {}; s.metrics.named = Math.max(1, s.metrics.named || 0);   // Karte freischalten
+  var card = window.GameUI.buildActionCombatCard();
+  if (!card || !card.classList.contains('action-combat-card')) throw new Error('keine Action-Gefecht-Karte');
+  var uids = s.creatures.slice(0, 3).map(function (c) { return c.uid; });
+  var start = window.GameActionCombat.start(s, 'wald', uids, true, 7);
+  if (!start.ok) throw new Error('Gefecht nicht gestartet: ' + start.reason);
+  window.GameUI.openActionCombat();
+  if (!document.querySelector('.modal.ac-modal')) throw new Error('kein Action-Modal');
+  if (!document.querySelector('#modal-root canvas.ac-stage')) throw new Error('keine Canvas-Bühne');
+  if (!s.actionBattle) throw new Error('kein laufendes Gefecht im Zustand');
+  if (window.GameUI._teardownActionScene) window.GameUI._teardownActionScene();
+  window.GameActionCombat.abort(s);
+  var close2 = document.querySelector('.modal-close'); if (close2) close2.click();
   window.GameUI.activeTab = 'uebersicht'; window.GameUI.render();
 });
 tryRender('Last-Epoch-artiger Herrscher-Talentbaum', function () {
