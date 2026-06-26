@@ -19,6 +19,7 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 
 ## Enwticklung
 - Jede Phase unter Status / Fortschritt sollte in einem git worktree unter /worktree abgearbeitet werden / bei upschluss in den main gemerged werden. Bitte kennzeichne eine Phase in diesem Plan wenn du diese gerade bearbeitest. Wenn du diesen plan liest, nehmen nur Phasen die nicht in bearbeitung sind / in progress. 
+- Nach Abschluss einer Phase soll der code commited & gepusht werden.
 
 ## Architektur / Dateien (offline-fähig, klassische Scripts, Namensraum `Game`)
 - `index.html` – Grundgerüst, Ressourcenleiste oben, Tab-Container, untere Navigation.
@@ -299,6 +300,95 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
   - **Integration/Save/Offline:** neue Module additiv geladen (index.html, PWA-Cache **v11**, Modul-Guard, jsdom-Loader); Save-Schema **v13** persistiert eine laufende Schlacht (verworfen bei kaputter Struktur). Das alte `systems-combat.js` bleibt vorerst unangetastet (kein Bruch bestehender Kämpfe/Tests).
   - **Verifikation:** `bun test` → **86/86** grün (neu: `dev/battle.test.js` mit 8 Checks: Aufbau, Determinismus, Datenintegrität, Sieg+Beute, Niederlage, Terminierungs-Stichprobe, Save-Roundtrip, Rückzug; DOM-Test um die Gitter-Schlacht erweitert → 77 Checks), 2× stabil; `bun run balance` unverändert; eigener End-to-End-Drive über mehrere Regionen/Level bestätigt skalierende Ausgänge.
   - **Nächste Schritte (offen):** alte Aufrufer (Expeditions-Taktikkampf, Karten-/Echo-Kämpfe) auf die neue Engine migrieren und `systems-combat.js` ablösen; mehr Fähigkeiten-/Gegnervielfalt; optional Canvas-Darstellung.
+
+[~] **Phase 45 – Echtzeit-Action-Kampf: vom rundenbasierten Raster zum Action-RPG (in Bearbeitung, claude/main-Session)** — direkter Spielerwunsch: *„Der Kampf ist viel zu langweilig und nicht schnell genug. Ruhig den taktischen Heroes-of-Might-and-Magic-Stil zu einem Action-RPG-Gameplay umbauen."* Kernproblem der bestehenden Kämpfe: rundenbasiert = warten statt spielen, Initiativeleisten/CT-Ticks/Zug-für-Zug bremsen das Tempo, Eingaben sind seltene Klicks statt fortlaufender Reaktion. Lösung: eine **echtzeitfähige Action-Kampfschicht**, in der der Spieler eine Heldeneinheit (Herrscher bzw. benannter Anführer) **direkt in Echtzeit** steuert — Bewegen, Angreifen, Ausweichen, Fähigkeiten mit Abklingzeiten — gegen telegrafierte Gegnerwellen.
+
+  **Leitprinzipien (warum schnell & nicht langweilig):**
+  - **Keine Runden, keine Wartebalken.** Eine feste Simulations-Tickrate (z. B. 30 Hz, entkoppelt von der Render-FPS) treibt Helden, Gegner, Projektile und Cooldowns gleichzeitig. Der Spieler agiert jederzeit, nicht „wenn er dran ist".
+  - **Lesbare Bedrohung statt verstecktem Würfeln.** Gegnerangriffe werden kurz **telegrafiert** (Anlauf-/Wind-up-Phase mit sichtbarer Gefahrenzone); rechtzeitiges Ausweichen/Blocken negiert sie. Skill statt RNG — knüpft direkt an die bewährte Telegraph-Idee der Sturmeinsätze (Phase 40) an, aber kontinuierlich statt rundenweise.
+  - **Dichte Eingabe.** Daumen-/Maus-tauglich: Bewegung (virtueller Stick links / WASD), Auto-Angriff bei Nähe + Tap-Ziel, **2–4 Fähigkeitstasten mit Cooldown**, **Ausweichrolle** (i-Frames, eigener Cooldown). Mobile-first: große Touch-Zonen, kein Hover.
+  - **Belohnungstempo.** Kurze Gefechte (30–90 s), sofortige Beute/EP wie bei Sturmeinsätzen; Combo-/Schwung-Anzeige für Mehrfachtreffer ohne Schaden zu nehmen.
+
+  **Architektur (additiv, konfliktfrei, lazy):**
+  - **Neue DOM-freie Engine `js/systems-action.js` (`GameActionCombat`):** kontinuierliche Welt mit Float-Positionen statt Gitterzellen; deterministischer Fixed-Step-Update (`step(dtMs)` akkumuliert auf feste Ticks → reproduzierbar/seedbar wie `systems-battle.js`). Entitäten: Held, Gegner, Projektile, Gefahrenzonen. Bewegungs-, Kollisions-, Treffer-, Telegraph-/Ausweich-, Cooldown- und Wellen-/Terminierungslogik (Sieg/Niederlage oder Soft-Cap nach N Sekunden). **Keine Spielzustands-Mutation aus dem Renderer** (gleicher Vertrag wie Phasen 33/34).
+  - **Neues UI `js/ui-action-combat.js` + Canvas-Szene `js/render/action-scene.js`:** nutzt den bestehenden `canvas-core.js`/`effects.js`-Renderer und die vorhandenen Kreaturen-/Effektatlanten (kein neues Pflicht-Asset). Render entkoppelt von Sim (Interpolation zwischen Ticks für Glätte trotz 30-Hz-Sim). Effektstufen `Aus/Reduziert/Voll` + `prefers-reduced-motion` respektiert; FPS-/DPR-Limits wie etablierte Bühnen.
+  - **Eingabe-Layer:** Touch (virtueller Stick + Buttons) und Tastatur/Maus; ein gemeinsames Intent-Objekt (`moveX/moveY`, `attack`, `dodge`, `skill[i]`) füttert die Engine — Engine bleibt eingabe-agnostisch und testbar.
+  - **Nicht angefasst:** `systems-battle.js`/`ui-battle.js`/`systems-combat.js` bleiben unberührt (Phase 44 läuft parallel in anderer Session). Action-Kampf ist ein **eigener, additiver Einstieg**, kein Umbau der Turn-Engine — die laufende Tactical-RPG-Arbeit kollidiert nicht.
+
+  **Anbindung an bestehende Systeme (damit Aufbau-Fortschritt zählt):**
+  - Held-Werte werden aus der gewählten Einheit abgeleitet: LP/ANG/VER/MAG/TMP → Bewegungstempo, Angriffstempo/-schaden, Cooldown-Reduktion, Ausweich-Frequenz. **Ausrüstung, Aspekte, Skill-Meisterschaft und Talente** wirken über bestehende `computeBonuses`/Werte (kein Parallel-Balancing).
+  - **Fähigkeiten** mappen die vorhandenen Rollen-Kits (Schlag, AoE-Wuchthieb, Feuerstoß, Frostlanze, Sturmnova, Heilwoge, Schildwall …) auf Echtzeit-Verhalten: Reichweite, AoE-Form, Projektil/Sofort, Element/Status (Brand/Frost/Schock), Cooldown statt MP-Zug.
+  - **Siege/Beute** laufen über dieselbe Beute-/EP-/Region-Logik wie Tactical/Expedition (eine `resolve…`-Brücke), damit keine zweite Belohnungsökonomie entsteht.
+
+  **Schrittplan (jeder Schritt einzeln testbar & mergebar):**
+  1. **Engine-Kern (DOM-frei) — ✅ fertig 2026-06-26:** `js/systems-action.js` (`GameActionCombat`): kontinuierliche Arena (100×56 abstrakte Einheiten, Float-Positionen), deterministischer Fixed-Step-Update (30 Hz; `step(state, dtMs)` akkumuliert echte Zeit auf feste Ticks, Epsilon gegen Float-Drift an der Tick-Grenze, Spirale-of-Death-Schutz), Held = zu einem Avatar gebündelte Gruppe (LP summiert, Offensive = bestes Mitglied; Werte aus `rulerStats`/`creatureStats`), Intent-Eingabe (`moveX/moveY/attack`), Held-Auto-Angriff (nächstes Ziel in Reichweite, Cooldown), ein Gegnertyp **Verfolger** (läuft zum Helden, Kontaktschaden auf Cooldown), Treffer/Tod, Wellen-Ende, harte Terminierung (≤90 s → LP-Anteils-Auflösung), Beute/EP über die bestehende Region-Logik (`applyResult`, gleiche Brücke wie `systems-battle.js`). DOM-frei, kein Save-Schema-Eingriff (ephemer, `state.actionBattle`), RNG aus Seed rehydriert (nicht serialisiert). `dev/action.test.js`: 9 Checks (Aufbau, leere Gruppe, Determinismus, Fixed-Step-Äquivalenz, Sieg+Beute, Niederlage, Terminierungs-Stichprobe, Seed-Roundtrip, Rückzug). **Verifikation:** `bun test` → **95/95** grün (86 + 9 neue), `bun run balance` unverändert sauber. *Noch nicht in index.html/sw.js verdrahtet (folgt mit der Canvas-UI in Schritt 4) → `modules.test.js` bleibt grün.*
+  2. **Telegraph + Ausweichrolle — ✅ fertig 2026-06-26:** Gegner-Zustandsmaschine `chase → windup → strike`: bei Annäherung kündigt der Verfolger den Schlag an (Telegraf `WINDUP_TIME` 0,55 s), verankert eine **lesbare Gefahrenzone** am Heldenpunkt und steht während des Wind-ups still; der Treffer fällt erst beim Ablauf und nur, wenn der Held noch in der Zone und nicht unverwundbar ist (Wegrennen kontert). **Ausweichrolle** (`intent.dodge`): kurzer Dash in Bewegungs-/Blickrichtung (`DASH_MULT` 2,6) mit i-Frame-Fenster (`IFRAME_TIME` 0,35 s) und Cooldown (`DODGE_CD` 0,9 s) → negiert den Schlag per Unverwundbarkeit **und** per Repositionierung. Telegraf-/Dodge-Zustand (Gefahrenzone, Wind-up-Rest, i-Frames, Dodge-Cooldown, Dash) ist im `renderView` exponiert, damit Schritt 4 ihn zeichnen kann. Deterministisch (keine versteckte Reaktions-RNG). `dev/action.test.js` +3 Checks: i-Frames + Cooldown-Gating, sichtbarer Telegraf mit Gefahrenzone, „Ausweichen reduziert Schaden vs. passivem Stillstehen". **Verifikation:** `bun test` → **98/98** grün, `bun run balance` unverändert.
+  3. **Fähigkeiten-Hotbar — ✅ fertig 2026-06-26:** 3-Slot-Hotbar je nach Heldenrolle aus 5 Echtzeit-Fähigkeiten (`Klingenwirbel` Nahkampf-AoE, `Schnellschuss` Fernkampf, `Feuerstoß` AoE+Brand, `Frostlanze` +Frost, `Heilwoge` Selbstheilung) — Rolle aus dem Anführer abgeleitet (`actionKit`), **Cooldown statt MP**. Auto-Ziel (nächstes Ziel in Reichweite, `aoeR` trifft Umkreis), Element-Multiplikator (Schwäche ×1,75 / Resistenz ×0,55) und sekundenbasierte **Statuseffekte** auf Gegner: Brand-DoT, Frost-Verlangsamung, Schock (−VER). `intent.skills` (Slot-Indizes) feuert; Cooldowns/Status im `renderView` exponiert. `dev/action.test.js` +3 Checks: Hotbar bereit, Feuern trifft + Cooldown-Gating, Brand-DoT schadet über Zeit. **Verifikation:** `bun test` → **101/101** grün, `bun run balance` unverändert.
+  4. **Canvas-UI + Eingabe:** `ui-action-combat.js` + `render/action-scene.js`, Touch-Stick/Buttons + Tastatur, Interpolation, Effektstufen. Einstiegskarte auf der Reichsübersicht („⚔️ Echtzeit-Gefecht"). Echter Chromium-Smoke-Test 390×844 + 1440×900.
+  5. **Gegnervielfalt + Wellen/Boss:** mehrere Gegner-Verhaltensmuster (Nahkampf-Stürmer, Distanz-Werfer, telegrafierter Schwerschlag, Boss-Phase < 50 % LP). Combo-/Schwung-Anzeige. Balance-Check je Heldenrang.
+  6. **Integration/Beute/Offline:** Beute-/EP-/Region-Brücke, Auto-/Zuschauer-Modus kann Echtzeit-Gefechte sinnvoll bestreiten (vereinfachte Auto-Steuerung), PWA-Cache hochziehen, README/Handbuch. Save: Echtzeit-Gefechte sind **ephemer/kurz** → vorerst **keine Persistenz laufender Runs nötig** (kein Save-Schema-Bruch; abgebrochene Runs verfallen). *ponytail: keine Run-Persistenz, nachrüsten falls Spieler lange Gefechte mittendrin speichern wollen.*
+
+  **Abnahmekriterien:** spürbar schneller (durchgehende Eingabe, kein Rundenwarten); jedes Gefecht in < 90 s gewinnbar mit Skill; Gegnerangriffe vor dem Treffer erkennbar & ausweichbar; mobil mit Daumen spielbar (44-px-Ziele, kein Hover); deterministisch über Seed (Test); kein Bruch von Phase-44-Dateien, Saves, Offline-/`file://`-Betrieb; `bun test` grün inkl. neuer `dev/action.test.js`; echter Chromium-Smoke-Test ohne Browserfehler/Überbreite.
+
+## Neue Spielspaß-Phasen (Vorschlag gegen Langeweile)
+Diese Phasen sind bewusst als **offene, nicht begonnene** Arbeitspakete formuliert. Sie sollen zuerst die vorhandenen Systeme besser ausnutzen, bevor neue Großsysteme gebaut werden.
+
+[ ] **Phase 46 – Completion-Autopilot: Zuschauer-Modus spielt auf 100 % Erfolge & Bestiarium** — der Auto-/Watch-/Simulationsmodus soll nicht mehr nur "vernünftig irgendetwas" tun, sondern gezielt alle Langzeitziele abschließen.
+- **Zielgraph statt Greedy-Berater:** `autoPlayStep` bekommt eine priorisierte Zielplanung über offene Erfolge, ungesehene Bestiarium-Formen, fehlende Regionen, Herrscherstufen, Baupläne, Talente und Echo-Fortschritt. Jede Aktion nennt ihr Ziel: "für Erfolg X", "für Bestiarium-Form Y", "für Voraussetzung Z".
+- **Bestiarium-Planer:** Für jede nicht entdeckte Spezies wird eine Route berechnet: benötigte Grundlinie beschwören/rekrutieren, Namenssiegel sichern, Level/Seelen farmen, Herrscherstufe/Forschung freischalten, Evolution auslösen, `seenSpecies` verifizieren.
+- **Erfolgs-Planer:** Für jede Achievement-Kategorie gibt es Strategien statt Zufall: Bau-/Upgrade-Ziele, Kampf-/Raid-/Echo-Ziele, Schmiedequalität, Skill-Meisterschaft, Talente, Kartenabschluss. Erfolge mit dynamischen Zielen lesen ihre Vorgaben direkt aus `GameAchievements`.
+- **Simulations-UI:** neue Schalter "100%-Run starten", "bis zum nächsten Erfolg vorspulen", "bis zur nächsten Bestiarium-Entdeckung vorspulen" und "Auto-Plan anzeigen". Der Verlauf zeigt Fortschrittsbalken: Erfolge, Bestiarium, Regionen, Baupläne, Talente.
+- **Stuck-Detection:** Wenn der Auto-Modus 300 Ticks kein messbares Ziel voranbringt, schreibt er einen Diagnoseeintrag: blockierende Ressource, fehlende Kapazität, fehlender Rang, fehlende Forschung oder fehlerhafte Strategie. Keine still hängenden Saves mehr.
+- **Headless-Abnahme:** deterministische 100%-Simulation ab frischem Save; Test bricht bei Stalls ab und beweist, dass alle aktuellen Erfolge freigeschaltet und alle Bestiarium-Spezies entdeckt werden können. Zusätzlich Regression: kein Wohnkapazitäts-Overflow, keine `NaN`/`Infinity`, Save-Roundtrip während Langlauf.
+
+[ ] **Phase 47 – Zuschauer-Modus als gute Show: Director, Highlights & Zeitraffer** — Watchmode soll unterhaltsam sein, nicht nur ein schneller Bot.
+- **Director-Feed:** Entscheidungen werden gruppiert und erklärt ("Aufbau", "Jagd auf Phönixlinie", "Raid-Vorbereitung", "Schmiede-Ziel"). Der Feed fasst belanglose Wiederholungen zusammen und hebt nur relevante Wendepunkte hervor.
+- **Kamera-/Tab-Regie:** Im sichtbaren Modus springt die UI automatisch zu Karte, Kampf, Schmiede, Bestiarium oder Erfolgsliste, wenn dort etwas Interessantes passiert. Keine endlose Übersicht mit Toast-Spam.
+- **Meilenstein-Replays:** große Ereignisse erzeugen kurze Einträge mit Vorher/Nachher-Daten: neue Form, erster S-Rang, Set vervollständigt, Boss gelegt, Region erobert, Achievement-Kette abgeschlossen.
+- **Geschwindigkeitskontrolle:** neben 5-min-Vorspulen auch "bis zum nächsten Meilenstein", "bis ein Risiko entsteht" und "Pause bei Entscheidung". Sichtbar/Headless nutzen dieselbe Simulationslogik.
+- **Abnahme:** Ein 60-Minuten-Auto-Lauf produziert lesbare Highlight-Gruppen, keine Modal-Flut, keine doppelten Toasts und bleibt auf Mobile bedienbar.
+
+[ ] **Phase 48 – Bestiarium-Jagden & Monster-Ökologie** — das Bestiarium wird vom passiven Sammelalbum zu einem aktiven Spielziel.
+- **Hinweise auf gesperrten Karten:** Jede unbekannte Form zeigt einen knappen, spoilerarmen Hinweis: Biome, nötige Linie, Evolutionsbedingung oder Fundort-Typ. Nach Erfüllen der Voraussetzungen wird der Hinweis konkreter.
+- **Fährten & Köder:** Regionen, Echo-Knoten und Außenanlagen können Fährten liefern. Mit Ködern/ritualisierten Expeditionen lässt sich gezielt eine Kreaturenlinie forcieren, statt auf zufälligen Fortschritt zu hoffen.
+- **Ökologie-Boni:** Vollständige Linien im Bestiarium geben kleine, thematische Reichsboni oder Kampfkenntnisse gegen diese Linie. Das macht Sammlung mechanisch relevant, ohne Pflicht für normales Spiel zu werden.
+- **Elite-Exemplare:** Seltene Varianten einzelner Linien dienen als Mini-Bosse oder Jagdziele mit kosmetischem Portrait-Rahmen/Trophäe und besonderer Schmiedekomponente.
+- **Abnahme:** Jede Bestiarium-Lücke hat einen erreichbaren Weg, UI-Hinweis und Auto-Modus-Strategie; Completion-Autopilot nutzt die Jagdmechanik statt blindem Farmen.
+
+[ ] **Phase 49 – Dynamische Aufträge, Krisen & Entscheidungen** — mehr kurze Spannungsbögen zwischen den langen Aufbauzielen.
+- **Auftragsbrett:** 3 rotierende Ziele mit klarer Laufzeit und Belohnung: "erobere eine Anlage", "gewinne mit riskantem Angriff", "entwickle eine C-Rang-Kreatur", "schmiede ein episches Teil", "überlebe eine Belagerung aktiv".
+- **Reichskrisen:** mehrstufige Ereignisse mit echter Entscheidung: Nahrungsknappheit, magische Seuche, Rivalen-Ultimatum, Flüchtlingsstrom, Gildenstreit. Jede Wahl verändert kurzfristige Boni, Kosten oder Bedrohung.
+- **Pacing-Regel:** Wenn mehrere Minuten kein Fortschritt/kein Kampf/keine Entscheidung passiert, darf das Spiel eine passende, skalierte Aufgabe anbieten. Lange Leerlaufphasen werden dadurch aktiv gebrochen.
+- **Auto-Integration:** Zuschauer-Modus löst Aufträge nach Profil: sicher, aggressiv, Sammler, Fortschritt. Im sichtbaren Modus pausiert er bei harten Entscheidungen optional.
+- **Abnahme:** Tests prüfen, dass Aufträge nicht unmöglich rollen, Belohnungen mit Fortschritt skalieren und Krisen keine Deadlocks mit Auto-/Offline-Fortschritt erzeugen.
+
+[ ] **Phase 50 – Strategische Spezialisierungen statt "alles bauen"** — das Reich braucht mehr echte Richtungsentscheidungen.
+- **Doktrinen:** drei bis fünf Reichsdoktrinen wie Eroberung, Forschung, Handel, Monsterzucht, Labyrinth. Sie verändern Baukosten, Auto-Prioritäten, Belohnungen und Kampfstil spürbar.
+- **Bezirks-Slots:** nicht jedes Spezialgebäude passt gleichzeitig auf maximale Wirkung. Der Spieler wählt aktive Bezirksboni; Umbau kostet Zeit/Ressourcen. Dadurch entsteht ein Grund, verschiedene Runs anders zu spielen.
+- **Anführer-Schulen:** benannte Eliten bekommen Spezialisierungen als Kommandeur, Jäger, Magier, Verteidiger oder Schmiedemeister. Schulen bestimmen Armee-Boni und Action-/Taktik-Skills.
+- **Auto-Profile:** Watchmode kann eine Doktrin wählen und danach konsequent spielen; Completion-Autopilot darf situativ umstellen, dokumentiert aber warum.
+- **Abnahme:** Mindestens drei unterschiedliche Strategien schaffen die Hauptkampagne; keine Doktrin ist Pflicht für 100 %, aber jede fühlt sich im Simulationsprofil anders an.
+
+[ ] **Phase 51 – Boss-Leiter, Trophäen & einzigartige Beute** — mehr erinnerbare Höhepunkte statt nur steigender Zahlen.
+- **Boss-Leiter:** nach Regionen, Echo-Zyklen und Bestiarium-Meilensteinen erscheinen handgebaute Bosse mit klaren Mechaniken, nicht nur höheren Werten. Action-, Taktik- und Auto-Auflösung bekommen je eine passende Variante.
+- **Trophäenraum:** besiegte Bosse, vollständige Kreaturenlinien, perfekte Aufträge und 100%-Meilensteine werden im Reichspanorama sichtbar. Fortschritt bekommt eine räumliche Spur.
+- **Einzigartige Drops:** Bosse schalten konkrete Artefakte, Baupläne, Skins, Bannerränge oder Spezialtalente frei. Keine Itemflut, sondern wenige merkbare Belohnungen.
+- **Wiederholbare Meisterschaft:** optionale Hardmode-Versionen mit Modifikatoren und kosmetischen/kleinen mechanischen Boni für spätere Runs.
+- **Abnahme:** Jeder Boss hat ein eindeutiges Profil, eine lesbare Belohnung und einen Auto-Modus-Ausgang; Niederlagen erzeugen Lernhinweis statt Frust.
+
+[ ] **Phase 52 – New Game+ / Chronik-Runs nach 100 %** — nach Abschluss der Sammlung soll es einen Grund geben, neu zu starten.
+- **Chronik-Abschluss:** Wenn Erfolge und Bestiarium komplett sind, kann der Spieler eine Chronik versiegeln. Der Run bleibt exportierbar, die wichtigsten Meilensteine werden zusammengefasst.
+- **Persistente Meta-Freischaltungen:** kleine Startvarianten, kosmetische Banner, alternative Startlinien, höhere Simulationsgeschwindigkeit oder neue Doktrin-Modifikatoren. Keine harte Power-Spirale, die Balancing zerstört.
+- **Challenge-Runs:** vordefinierte Modifikatoren wie "nur Untote", "kein Handel", "Rivalen aggressiv", "Bestiarium-Speedrun", "permadeath riskant". Auto-Modus kann diese Runs ebenfalls versuchen.
+- **Bestzeiten & Seed-Vergleich:** Completion-Zeit, Ticks bis 100 %, Todesfälle, Bossversuche und seltenste Spezies werden gespeichert. Headless-Sim kann Seeds vergleichen.
+- **Abnahme:** Ein abgeschlossener 100%-Save kann New Game+ starten, ohne alten Save zu zerstören; Haupttests bleiben auch ohne Meta-Fortschritt grün.
+
+[ ] **Phase 53 – Langeweile-Metriken & Content-Pacing-Tests** — messen, ob das Spiel wieder langweilig wird.
+- **Action-Dichte messen:** Tests und Debug-Overlay erfassen Zeit bis nächstem Bau, Kampf, Achievement, Bestiarium-Fund, Boss, Auftrag und Entscheidung. Ziel: im normalen Spiel regelmäßig ein sinnvoller Auslöser.
+- **Stall-Klassifikation:** Simulation unterscheidet bewusstes Sparen von kaputtem Fortschritt: fehlende Ressource, zu hohe Kosten, falsche Auto-Priorität, gesperrter UI-Pfad, unlösbarer Erfolg.
+- **Balance-Gates:** CI schlägt an, wenn ein frischer Auto-/Normalrun zu lange ohne Fortschritt bleibt, wenn 100%-Completion unmöglich wird oder wenn eine Strategie alle anderen dominiert.
+- **Design-Dashboard:** einfache Entwicklerausgabe mit Top-Blockern, häufigsten Auto-Aktionen, Zeitverteilung und offenen Content-Lücken. Entscheidungen werden damit datenbasiert statt nach Bauchgefühl getroffen.
+- **Abnahme:** Langläufe über mehrere Seeds liefern Fortschrittskurven; bekannte Bugs wie hängende Quests oder Über-Kapazität werden als Regressionen sofort sichtbar.
 
 ## Nicht-UI-Verbesserungen (Technik-Backlog, Analyse 2026-06-20, Worktree `/worktree/improvements`)
 Vorschläge aus einer Code-/Infrastruktur-Durchsicht; bewusst **keine UI-Themen**. Reihenfolge ≈ Priorität/Nutzen für den aktuellen Parallel-Phasen-Workflow.

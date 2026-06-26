@@ -1,0 +1,363 @@
+/* ============================================================
+   systems-action.js — Echtzeit-Action-Kampf (Phase 45, Schritt 1).
+   Eigenständige, DOM-freie Engine: kontinuierliche Arena mit
+   Float-Positionen statt Gitterzellen, deterministischer
+   Fixed-Step-Update (30 Hz), Held-Bewegung per Intent, Auto-
+   Angriff, ein Gegnertyp (Verfolger), Treffer/Tod, Wellen-Ende
+   und garantierte Terminierung. Deterministisch über Seed.
+   Additiv neben systems-battle.js (rundenbasiert, Phase 44) —
+   keine geteilten Zustände, kein Save-Schema-Eingriff.
+   ============================================================ */
+(function () {
+  'use strict';
+  var root = (typeof window !== 'undefined') ? window : globalThis;
+  var SYS = root.GameSystems, I = root.GameSystemsInternal;
+  if (!SYS || !I) throw new Error('systems-action.js muss nach systems.js geladen werden');
+  var GD = I.GD, round = I.round, clamp = I.clamp;
+
+  // Arena in abstrakten Einheiten (16:9); der Renderer skaliert beliebig.
+  var AW = 100, AH = 56;
+  var STEP_MS = 1000 / 30;          // feste Simulations-Tickrate, entkoppelt von Render-FPS
+  var MAX_STEPS_PER_CALL = 12;      // Spirale-of-Death-Schutz bei großen dt (Tab-Wechsel)
+  var MAX_SECONDS = 90;             // harte Terminierung gegen Endlosgefechte
+  var HERO_R = 2.4, ENEMY_R = 2.2;
+  // Ausweichrolle: kurzer Dash mit Unverwundbarkeitsfenster (i-Frames) + Cooldown.
+  var IFRAME_TIME = 0.35, DODGE_CD = 0.9, DASH_TIME = 0.16, DASH_MULT = 2.6;
+  // Telegraf: Gegner kündigt den Schlag an (lesbare Gefahrenzone), bevor er trifft → ausweichbar.
+  var WINDUP_TIME = 0.55;
+
+  // ---------- deterministischer RNG (aus Seed rehydrierbar, nicht serialisiert) ----------
+  function makeRng(seed) {
+    var v = Math.max(1, Math.floor(seed) % 2147483647);
+    return function () { v = v * 16807 % 2147483647; return (v - 1) / 2147483646; };
+  }
+
+  // ---------- Fähigkeiten-Hotbar (Cooldown statt MP — Echtzeit) ----------
+  // Auto-Ziel: Schadenszauber zielen aufs nächste Ziel in Reichweite; aoeR>0 trifft alle in dessen Umkreis.
+  var ACTION_ABILITIES = {
+    wirbel: { id: 'wirbel', name: 'Klingenwirbel', icon: '🌀', kind: 'damage', stat: 'atk', power: 1.5, range: 12, aoeR: 9, element: 'physisch', status: null, cd: 3.0 },
+    schuss: { id: 'schuss', name: 'Schnellschuss', icon: '🏹', kind: 'damage', stat: 'atk', power: 1.25, range: 42, aoeR: 0, element: 'physisch', status: null, cd: 1.6 },
+    feuer: { id: 'feuer', name: 'Feuerstoß', icon: '🔥', kind: 'damage', stat: 'mag', power: 1.5, range: 40, aoeR: 6, element: 'feuer', status: 'brand', cd: 3.2 },
+    frost: { id: 'frost', name: 'Frostlanze', icon: '❄️', kind: 'damage', stat: 'mag', power: 1.3, range: 40, aoeR: 0, element: 'wasser', status: 'frost', cd: 2.6 },
+    heilen: { id: 'heilen', name: 'Heilwoge', icon: '💚', kind: 'heal', stat: 'mag', power: 1.6, range: 0, aoeR: 0, element: 'licht', status: null, cd: 9.0 }
+  };
+  function actionKit(role) {
+    if (role === 'Magie') return ['feuer', 'frost', 'heilen'];
+    if (role === 'Verteidigung') return ['wirbel', 'heilen', 'frost'];
+    if (role === 'Fernkampf') return ['schuss', 'feuer', 'wirbel'];
+    return ['wirbel', 'schuss', 'heilen'];   // Kampf / Default
+  }
+  function makeSlot(id) {
+    var a = ACTION_ABILITIES[id] || ACTION_ABILITIES.wirbel;
+    return { id: a.id, name: a.name, icon: a.icon, kind: a.kind, stat: a.stat, power: a.power, range: a.range, aoeR: a.aoeR, element: a.element, status: a.status, cd: a.cd, cdLeft: 0 };
+  }
+
+  // ---------- Statuswirkungen (Echtzeit, sekundenbasiert) ----------
+  function statusDef(id) {
+    return { brand: { icon: '🔥', dot: 0.05, dur: 3 }, frost: { icon: '❄️', slow: 0.5, dur: 2 }, schock: { icon: '⚡', defMod: -0.3, dur: 2 } }[id] || null;
+  }
+  function addStatus(e, id) {
+    var d = statusDef(id); if (!d) return;
+    e.statuses = (e.statuses || []).filter(function (s) { return s.id !== id; });
+    e.statuses.push({ id: id, t: d.dur });
+  }
+  function statusMod(e, prop) { var m = 0; (e.statuses || []).forEach(function (s) { var d = statusDef(s.id); if (d && d[prop]) m += d[prop]; }); return m; }
+  function enemyDef(e) { return Math.max(1, e.def * (1 + statusMod(e, 'defMod'))); }
+  function elementMult(element, target) {
+    if (!element || element === 'physisch') return 1;
+    if (target.weakness === element) return 1.75;
+    if (target.element === element) return 0.55;
+    return 1;
+  }
+
+  // ---------- Aufbau ----------
+  function statOf(stats) {
+    return { lp: Math.max(1, stats.lp | 0), ang: stats.ang || 1, ver: stats.ver || 1, mag: stats.mag || 1, tmp: Math.max(1, stats.tmp || 1) };
+  }
+  // Der Held bündelt die Gruppe zu einem steuerbaren Avatar (LP summiert, Offensive = bestes Mitglied).
+  function buildHero(state, creatureUids, rulerJoin) {
+    var blocks = [], name = 'Held', icon = '🦸', role = rulerJoin ? 'Magie' : 'Kampf';
+    if (rulerJoin) {
+      blocks.push(statOf(I.rulerStats(state)));
+      name = state.herrscher.name; icon = GD().rulerStages[state.herrscher.stage].icon;
+    }
+    (creatureUids || []).forEach(function (uid) {
+      var c = I.findCreature(state, uid); if (!c) return;
+      var sp = GD().creature(c.speciesId); if (!sp) return;
+      blocks.push(statOf(I.creatureStats(state, c)));
+      if (!rulerJoin && blocks.length === 1) { name = c.named ? c.name : sp.name; icon = sp.icon; role = sp.role || 'Kampf'; }
+    });
+    if (!blocks.length) return null;
+    var hp = 0, atk = 1, def = 1, mag = 1, tmp = 1;
+    blocks.forEach(function (b) { hp += b.lp; atk = Math.max(atk, b.ang); def = Math.max(def, b.ver); mag = Math.max(mag, b.mag); tmp = Math.max(tmp, b.tmp); });
+    return {
+      side: 'hero', name: name, icon: icon,
+      x: AW * 0.2, y: AH * 0.5, r: HERO_R,
+      hp: hp, maxHp: hp, atk: atk, def: def, mag: mag, tmp: tmp,
+      speed: 22 + tmp * 0.28,          // Einheiten/Sekunde
+      atkRange: 8, atkCd: 0, atkRate: 0.55, atkDamage: atk,
+      invuln: 0, dodgeCd: 0, dashT: 0, dashX: 1, dashY: 0,
+      role: role, hotbar: actionKit(role).map(makeSlot),
+      facing: 1, dead: false, hits: 0, dodges: 0
+    };
+  }
+
+  function buildEnemies(state, region, rng) {
+    var count = clamp(2 + Math.floor(region.power / 55), 2, 8);
+    var per = Math.max(8, Math.round(region.power / count));
+    var enemies = [];
+    for (var i = 0; i < count; i++) {
+      var hp = Math.round(per * (1.6 + rng() * 0.5));
+      var atk = Math.round(per * (0.45 + rng() * 0.2));
+      // gleichmäßig auf der rechten Hälfte verteilt
+      var ex = AW * (0.62 + rng() * 0.34);
+      var ey = AH * (0.12 + (i + 0.5) / count * 0.76);
+      enemies.push({
+        side: 'enemy', kind: 'verfolger', key: 'e' + i,
+        name: region.icon + ' Verfolger ' + (i + 1), icon: ['👹', '🦇', '🐍', '💀', '🦂', '👺', '🐗', '🕷️'][i % 8],
+        x: ex, y: ey, r: ENEMY_R,
+        hp: hp, maxHp: hp, atk: atk, def: Math.round(per * 0.28),
+        speed: 13 + rng() * 6, atkCd: 0, atkRate: 0.85, dead: false,
+        state: 'chase', windup: 0, dangerX: 0, dangerY: 0, dangerR: 6,
+        attackReach: ENEMY_R + HERO_R + 3, statuses: [],
+        weakness: ['feuer', 'wasser', 'wind', null][i % 4], element: 'physisch'
+      });
+    }
+    return enemies;
+  }
+
+  // ---------- Geometrie ----------
+  function dist(a, b) { var dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
+  function nearestEnemy(b) {
+    var best = null, bd = Infinity;
+    b.enemies.forEach(function (e) { if (e.dead) return; var d = dist(b.hero, e); if (d < bd) { bd = d; best = e; } });
+    return best;
+  }
+  function clampPos(o, r) { o.x = clamp(o.x, r, AW - r); o.y = clamp(o.y, r, AH - r); }
+
+  // ---------- Schaden ----------
+  function dealDamage(target, raw, defStat) {
+    var dmg = Math.max(1, round(raw * (100 / (100 + defStat * 1.4))));
+    target.hp = Math.max(0, target.hp - dmg);
+    if (target.hp <= 0) target.dead = true;
+    return dmg;
+  }
+
+  function alog(b, text) { b.log = b.log || []; b.log.unshift(text); b.log = b.log.slice(0, 6); }
+
+  // Hotbar-Fähigkeit feuern (Auto-Ziel). Gibt true zurück, wenn ausgelöst.
+  function fireAbility(b, idx) {
+    var hero = b.hero, slot = hero.hotbar[idx];
+    if (!slot || slot.cdLeft > 0) return false;
+    if (slot.kind === 'heal') {
+      var heal = round(hero.mag * slot.power);
+      hero.hp = Math.min(hero.maxHp, hero.hp + heal); slot.cdLeft = slot.cd;
+      alog(b, hero.icon + ' ' + slot.icon + ' ' + slot.name + ' (+' + heal + ').');
+      return true;
+    }
+    var tgt = nearestEnemy(b); if (!tgt || dist(hero, tgt) > slot.range) return false;
+    slot.cdLeft = slot.cd; hero.facing = tgt.x >= hero.x ? 1 : -1;
+    var stat = slot.stat === 'mag' ? hero.mag : hero.atk;
+    var hitList = slot.aoeR > 0 ? b.enemies.filter(function (e) { return !e.dead && dist({ x: tgt.x, y: tgt.y }, e) <= slot.aoeR; }) : [tgt];
+    var killed = 0;
+    hitList.forEach(function (e) {
+      var dmg = dealDamage(e, stat * slot.power * elementMult(slot.element, e) * (0.9 + b.rng() * 0.2), enemyDef(e));
+      if (slot.status && !e.dead) addStatus(e, slot.status);
+      if (e.dead) killed++;
+    });
+    alog(b, hero.icon + ' ' + slot.icon + ' ' + slot.name + (hitList.length > 1 ? ' (×' + hitList.length + ')' : '') + (killed ? ' ☠️' + killed : ''));
+    return true;
+  }
+
+  // ---------- ein fester Simulations-Tick (dt in Sekunden) ----------
+  function tick(b, dt) {
+    if (b.status !== 'active') return;
+    b.elapsed += dt;
+    var hero = b.hero, intent = b.intent || {};
+
+    // Timer für Ausweichrolle/i-Frames herunterzählen.
+    hero.invuln = Math.max(0, hero.invuln - dt);
+    hero.dodgeCd = Math.max(0, hero.dodgeCd - dt);
+    hero.dashT = Math.max(0, hero.dashT - dt);
+
+    var mx = clamp(intent.moveX || 0, -1, 1), my = clamp(intent.moveY || 0, -1, 1);
+    var ml = Math.sqrt(mx * mx + my * my);
+
+    // Ausweichrolle starten: Dash in Bewegungs-/Blickrichtung + Unverwundbarkeitsfenster.
+    if (intent.dodge && hero.dodgeCd <= 0 && hero.dashT <= 0) {
+      if (ml > 1e-4) { hero.dashX = mx / ml; hero.dashY = my / ml; }
+      else { hero.dashX = hero.facing; hero.dashY = 0; }
+      hero.dashT = DASH_TIME; hero.invuln = IFRAME_TIME; hero.dodgeCd = DODGE_CD; hero.dodges++;
+      hero.facing = hero.dashX >= 0 ? 1 : -1;
+    }
+
+    // Bewegung: während des Dashs schneller in Dash-Richtung, sonst normaler Intent (normalisiert).
+    if (hero.dashT > 0) {
+      hero.x += hero.dashX * hero.speed * DASH_MULT * dt;
+      hero.y += hero.dashY * hero.speed * DASH_MULT * dt;
+      clampPos(hero, hero.r);
+    } else if (ml > 1e-4) {
+      hero.x += (mx / ml) * hero.speed * dt;
+      hero.y += (my / ml) * hero.speed * dt;
+      hero.facing = mx >= 0 ? 1 : -1;
+      clampPos(hero, hero.r);
+    }
+
+    // Held-Auto-Angriff: nächstes Ziel in Reichweite, getaktet über Cooldown.
+    hero.atkCd = Math.max(0, hero.atkCd - dt);
+    if (intent.attack !== false && hero.atkCd <= 0) {
+      var tgt = nearestEnemy(b);
+      if (tgt && dist(hero, tgt) <= hero.atkRange + tgt.r) {
+        hero.atkCd = hero.atkRate;
+        hero.facing = tgt.x >= hero.x ? 1 : -1;
+        var dmg = dealDamage(tgt, hero.atkDamage * (0.9 + b.rng() * 0.2), enemyDef(tgt));
+        hero.hits++;
+        if (tgt.dead) alog(b, hero.icon + ' erlegt ' + tgt.name + ' (−' + dmg + ').');
+      }
+    }
+
+    // Fähigkeiten-Hotbar: Cooldowns herunterzählen, gedrückte Slots feuern (Cooldown-gegated).
+    hero.hotbar.forEach(function (s) { s.cdLeft = Math.max(0, s.cdLeft - dt); });
+    (intent.skills || []).forEach(function (idx) { fireAbility(b, idx | 0); });
+
+    // Gegner: Verfolger jagen den Helden, kündigen den Schlag an (Telegraf) und treffen erst danach.
+    b.enemies.forEach(function (e) {
+      if (e.dead) return;
+      // Statuswirkungen: Brand-DoT, Frost-Verlangsamung, Schock (Verteidigung) — sekundenbasiert.
+      var slow = 0;
+      e.statuses = (e.statuses || []).filter(function (st) {
+        var d = statusDef(st.id); if (!d) return false;
+        if (d.dot) e.hp = Math.max(0, e.hp - Math.max(0.5, e.maxHp * d.dot * dt));
+        if (d.slow) slow = Math.max(slow, d.slow);
+        st.t -= dt; return st.t > 0;
+      });
+      if (e.hp <= 0) { e.dead = true; alog(b, '🔥 ' + e.name + ' erliegt dem Statuseffekt.'); return; }
+      var spd = e.speed * (1 - slow);
+      e.atkCd = Math.max(0, e.atkCd - dt);
+      if (e.state === 'windup') {
+        // Telegraf läuft: Gegner ist festgelegt (steht), Gefahrenzone bleibt am angekündigten Punkt.
+        e.windup -= dt;
+        if (e.windup <= 0) {
+          e.state = 'chase'; e.atkCd = e.atkRate;
+          var inZone = dist({ x: hero.x, y: hero.y }, { x: e.dangerX, y: e.dangerY }) <= e.dangerR;
+          if (inZone && hero.invuln <= 0) {
+            var hd = dealDamage(hero, e.atk, hero.def);
+            if (hero.dead) alog(b, '💀 ' + hero.name + ' fällt durch ' + e.name + ' (−' + hd + ').');
+          }
+        }
+        return;
+      }
+      var d = dist(e, hero);
+      if (d <= e.attackReach && e.atkCd <= 0) {
+        // Schlag ankündigen: Gefahrenzone am aktuellen Heldenpunkt verankern (Wegrennen/Ausweichen kontert).
+        e.state = 'windup'; e.windup = WINDUP_TIME; e.dangerX = hero.x; e.dangerY = hero.y;
+      } else {
+        var dx = hero.x - e.x, dy = hero.y - e.y, dl = d || 1;
+        e.x += (dx / dl) * spd * dt;
+        e.y += (dy / dl) * spd * dt;
+        clampPos(e, e.r);
+      }
+    });
+
+    // Aufräumen der toten Gegner aus der Liste (klein halten).
+    b.enemies = b.enemies.filter(function (e) { return !e.dead; });
+
+    // Terminierung.
+    if (hero.dead) { b.status = 'lost'; alog(b, '💥 Niederlage.'); return; }
+    if (!b.enemies.length) { b.status = 'won'; alog(b, '🏆 Welle bezwungen!'); return; }
+    if (b.elapsed >= MAX_SECONDS) { resolveTimeout(b); }
+  }
+
+  function resolveTimeout(b) {
+    var pf = b.hero.maxHp > 0 ? b.hero.hp / b.hero.maxHp : 0;
+    var ec = 0, em = 0; b.enemies.forEach(function (e) { ec += Math.max(0, e.hp); em += e.maxHp; });
+    var ef = em > 0 ? ec / em : 0;
+    b.status = pf >= ef ? 'won' : 'lost';
+    alog(b, '⌛ Zeit abgelaufen (Held ' + Math.round(pf * 100) + '% vs. Feind ' + Math.round(ef * 100) + '%).');
+  }
+
+  // ---------- öffentliche Schrittfunktion ----------
+  function ab(state) { return state.actionBattle || null; }
+  function rehydrate(state) {
+    var b = ab(state); if (b && typeof b.rng !== 'function') b.rng = makeRng(b.seed || 1);
+    return b;
+  }
+  // Treibt die Sim um echte Zeit (dtMs) voran; akkumuliert auf feste Ticks → reproduzierbar.
+  function step(state, dtMs) {
+    var b = rehydrate(state); if (!b || b.status !== 'active') return b ? b.status : null;
+    b.acc = (b.acc || 0) + Math.max(0, dtMs || 0);
+    var steps = 0;
+    // Epsilon gegen Float-Drift an der Tick-Grenze → 6×kleiner Schritt == 1×großer Schritt.
+    while (b.acc >= STEP_MS - 1e-9 && steps < MAX_STEPS_PER_CALL && b.status === 'active') {
+      b.acc -= STEP_MS; steps++; tick(b, STEP_MS / 1000);
+    }
+    if (b.acc > STEP_MS * MAX_STEPS_PER_CALL) b.acc = 0;   // bei sehr großem dt nicht aufstauen
+    return b.status;
+  }
+  function setIntent(state, intent) {
+    var b = ab(state); if (!b) return;
+    b.intent = { moveX: intent && intent.moveX || 0, moveY: intent && intent.moveY || 0,
+      attack: !intent || intent.attack !== false, dodge: !!(intent && intent.dodge),
+      skills: (intent && intent.skills) ? intent.skills.slice() : [] };
+  }
+
+  // ---------- Start / Ergebnis ----------
+  function start(state, regionId, creatureUids, rulerJoin, seed) {
+    var region = GD().region(regionId); if (!region) return { ok: false, reason: 'Region unbekannt.' };
+    var hero = buildHero(state, creatureUids, rulerJoin); if (!hero) return { ok: false, reason: 'Keine Einheiten für das Gefecht.' };
+    seed = Math.max(1, Math.floor(seed || (Number(state.tick) || 1) * 2654435761 % 2147483647 || 1));
+    var rng = makeRng(seed);
+    var enemies = buildEnemies(state, region, rng);
+    var b = {
+      regionId: regionId, seed: seed, status: 'active', elapsed: 0, acc: 0,
+      hero: hero, enemies: enemies, intent: { moveX: 0, moveY: 0, attack: true, dodge: false, skills: [] },
+      rulerJoined: !!rulerJoin, log: ['⚔️ Echtzeit-Gefecht um ' + region.name + ' beginnt!']
+    };
+    b.rng = rng;
+    state.actionBattle = b;
+    return { ok: true, battle: b };
+  }
+
+  function applyResult(state) {
+    var b = ab(state); if (!b || b.status === 'active') return null;
+    var region = GD().region(b.regionId), won = b.status === 'won';
+    var result = { won: won, regionId: b.regionId, reward: null, xp: 0 };
+    if (won) {
+      var bonus = 0.15 + clamp(b.hero.hp / Math.max(1, b.hero.maxHp), 0, 1) * 0.3;   // mehr Rest-LP → mehr Beute
+      var reward = {}; for (var k in region.rewards) reward[k] = round(region.rewards[k] * (1 + bonus));
+      I.addResources(state, reward); I.addRulerXp(state, round(region.xp * (1 + bonus)));
+      if ((state.claimedRegions || []).indexOf(region.id) < 0 && SYS.regionUnlocked && SYS.regionUnlocked(state, region.id)) state.claimedRegions.push(region.id);
+      result.reward = reward; result.xp = round(region.xp * (1 + bonus));
+      I.log(state, '🏆 Echtzeit-Gefecht um ' + region.name + ' gewonnen!', 'gold');
+    } else {
+      I.log(state, '💥 Echtzeit-Gefecht um ' + region.name + ' verloren.', 'bad');
+    }
+    state.actionBattle = null;
+    return result;
+  }
+  function abort(state) { state.actionBattle = null; return { ok: true }; }
+
+  // ---------- Render-View (reine Kopie für die UI; verändert nie Zustand) ----------
+  function renderView(state) {
+    var b = rehydrate(state); if (!b) return null;
+    var h = b.hero;
+    return {
+      w: AW, h: AH, status: b.status, regionId: b.regionId, elapsed: round(b.elapsed * 10) / 10,
+      hero: { name: h.name, icon: h.icon, role: h.role, x: round(h.x * 100) / 100, y: round(h.y * 100) / 100, r: h.r, hp: h.hp, maxHp: h.maxHp, facing: h.facing, atkRange: h.atkRange, atkCd: round(h.atkCd * 100) / 100, invuln: round(h.invuln * 100) / 100, dodgeCd: round(h.dodgeCd * 100) / 100, dashing: h.dashT > 0,
+        cooldowns: h.hotbar.map(function (s) { return { id: s.id, name: s.name, icon: s.icon, kind: s.kind, cdLeft: round(s.cdLeft * 100) / 100, cd: s.cd, ready: s.cdLeft <= 0 }; }) },
+      enemies: b.enemies.map(function (e) {
+        var v = { key: e.key, name: e.name, icon: e.icon, kind: e.kind, x: round(e.x * 100) / 100, y: round(e.y * 100) / 100, r: e.r, hp: e.hp, maxHp: e.maxHp, state: e.state, statuses: (e.statuses || []).map(function (s) { return s.id; }) };
+        if (e.state === 'windup') { v.windup = round(e.windup * 100) / 100; v.windupMax = WINDUP_TIME; v.danger = { x: round(e.dangerX * 100) / 100, y: round(e.dangerY * 100) / 100, r: e.dangerR }; }
+        return v;
+      }),
+      log: (b.log || []).slice()
+    };
+  }
+
+  root.GameActionCombat = {
+    AW: AW, AH: AH, STEP_MS: STEP_MS, MAX_SECONDS: MAX_SECONDS, ABILITIES: ACTION_ABILITIES,
+    start: start, step: step, setIntent: setIntent, rehydrate: rehydrate,
+    renderView: renderView, applyResult: applyResult, abort: abort,
+    nearestEnemy: function (state) { var b = rehydrate(state); return b ? nearestEnemy(b) : null; }
+  };
+})();
