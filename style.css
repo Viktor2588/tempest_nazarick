@@ -1829,6 +1829,14 @@ select.btn { text-align: left; min-height: 40px; }
 .ach-reward { color: var(--accent-2); }
 
 /* ---------- Bestiarium (Phase 38) ---------- */
+.hunt-board { margin: 10px 0 14px; }
+.hunt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 6px 0 12px; }
+.hunt-card { display: flex; flex-direction: column; gap: 7px; background: linear-gradient(180deg, rgba(78,111,83,.14), var(--panel-2)); border: 1px solid rgba(112,156,116,.32); border-radius: var(--radius-sm); padding: 10px; }
+.hunt-card.complete { border-color: var(--accent-2); background: linear-gradient(180deg, rgba(255,180,84,.12), var(--panel-2)); }
+.hunt-head { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.hunt-icon { font-size: 22px; line-height: 1; }
+.hunt-title { flex: 1 1 auto; min-width: 0; }
+.hunt-track { display: flex; flex-direction: column; gap: 3px; }
 .beast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin: 6px 0 12px; }
 .beast-card { display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px; }
 .beast-card.locked { opacity: .6; }
@@ -1840,6 +1848,7 @@ select.btn { text-align: left; min-height: 40px; }
 .beast-sub { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
 .beast-skill { font-size: 11.5px; color: var(--r-magie); }
 .beast-desc { font-size: 11px; color: var(--text-dim); }
+.beast-hint { font-size: 11px; color: var(--text-dim); border-left: 2px solid rgba(255,180,84,.45); padding-left: 7px; line-height: 1.35; }
 .beast-evos { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
 .beast-evo { font-size: 11px; color: var(--text-mut); }
 

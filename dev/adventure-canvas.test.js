@@ -6,6 +6,7 @@ import '../js/data.js';
 import '../js/art-data.js';
 import '../js/state.js';
 import '../js/systems.js';
+import '../js/systems-bestiary.js';
 import '../js/systems-combat.js';
 import '../js/render/canvas-core.js';
 import '../js/render/effects.js';

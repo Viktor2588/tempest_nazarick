@@ -19,7 +19,7 @@ Bestätigt: **Browser (HTML/JS)**, **auf dem Handy spielbar**. Ausdrückliche Au
 
 ## Enwticklung
 - Jede Phase unter Status / Fortschritt sollte in einem git worktree unter /worktree abgearbeitet werden / bei upschluss in den main gemerged werden. Bitte kennzeichne eine Phase in diesem Plan wenn du diese gerade bearbeitest. Wenn du diesen plan liest, nehmen nur Phasen die nicht in bearbeitung sind / in progress. 
-- Nach Abschluss einer Phase soll der code commited & gepusht werden.
+- Nach Abschluss einer Phase soll der code commited, in den main gemereged & gepusht werden. Den worktree hinterher aufräumen.
 
 ## Architektur / Dateien (offline-fähig, klassische Scripts, Namensraum `Game`)
 - `index.html` – Grundgerüst, Ressourcenleiste oben, Tab-Container, untere Navigation.
@@ -353,12 +353,14 @@ Diese Phasen sind bewusst als **offene, nicht begonnene** Arbeitspakete formulie
 - **Geschwindigkeitskontrolle:** neben 5-min-Vorspulen auch "bis zum nächsten Meilenstein", "bis ein Risiko entsteht" und "Pause bei Entscheidung". Sichtbar/Headless nutzen dieselbe Simulationslogik.
 - **Abnahme:** Ein 60-Minuten-Auto-Lauf produziert lesbare Highlight-Gruppen, keine Modal-Flut, keine doppelten Toasts und bleibt auf Mobile bedienbar.
 
-[ ] **Phase 48 – Bestiarium-Jagden & Monster-Ökologie** — das Bestiarium wird vom passiven Sammelalbum zu einem aktiven Spielziel.
-- **Hinweise auf gesperrten Karten:** Jede unbekannte Form zeigt einen knappen, spoilerarmen Hinweis: Biome, nötige Linie, Evolutionsbedingung oder Fundort-Typ. Nach Erfüllen der Voraussetzungen wird der Hinweis konkreter.
-- **Fährten & Köder:** Regionen, Echo-Knoten und Außenanlagen können Fährten liefern. Mit Ködern/ritualisierten Expeditionen lässt sich gezielt eine Kreaturenlinie forcieren, statt auf zufälligen Fortschritt zu hoffen.
-- **Ökologie-Boni:** Vollständige Linien im Bestiarium geben kleine, thematische Reichsboni oder Kampfkenntnisse gegen diese Linie. Das macht Sammlung mechanisch relevant, ohne Pflicht für normales Spiel zu werden.
-- **Elite-Exemplare:** Seltene Varianten einzelner Linien dienen als Mini-Bosse oder Jagdziele mit kosmetischem Portrait-Rahmen/Trophäe und besonderer Schmiedekomponente.
-- **Abnahme:** Jede Bestiarium-Lücke hat einen erreichbaren Weg, UI-Hinweis und Auto-Modus-Strategie; Completion-Autopilot nutzt die Jagdmechanik statt blindem Farmen.
+[x] **Phase 48 – Bestiarium-Jagden & Monster-Ökologie (2026-06-27)** — das Bestiarium ist vom passiven Sammelalbum zu einem aktiven Spielziel geworden.
+- **DOM-freies Jagdmodul:** `js/systems-bestiary.js` erweitert `GameSystems` um Linienwissen, spoilerarme Hinweise, Fährten-/Köderlogik, Köderjagd-Schritte und Ökologie-Boni. `systems.js` bleibt unter dem 2800-Zeilen-Limit; Save-Schema **v15** normalisiert `state.bestiaryHunts`.
+- **Hinweise auf gesperrten Karten:** Jede unbekannte Form zeigt im Bestiarium eine erreichbare Spur: Quelle/Biom der Linie, Entwicklungsrichtung und bei bereits gesehener Vorform die konkreten Evolutionskosten.
+- **Fährten & Köder:** Regionssiege, Echo-Knoten, Außenanlagen und Fundorte vergeben Fährten für passende unvollständige Linien. Drei Fährten binden einen Köder; die Köderjagd ruft fehlende Grundformen, benennt oder trainiert Vorformen und sammelt kleinere fehlende Evolutionsressourcen, ohne Rang-, Level-, Seelen- oder Kapazitätsgates zu überspringen.
+- **Ökologie-Boni:** Vollständige Linien geben kleine, thematische Reichsboni auf Produktion, Wissen, Armee, Verteidigung, Beute, Heilung oder Tempo. Sammlung ist dadurch mechanisch relevant, aber nicht Pflicht für normales Spiel.
+- **UI & Autopilot:** Das Bestiarium zeigt ein Jagdbrett je Linie mit Quelle, Hinweis, Fortschritt, Fährten und Ködern; gesperrte Formen besitzen direkte Köderjagd-Aktionen. Der Completion-Planer bevorzugt vorbereitete Köder und kann Fährten binden, bevor er auf normale Evolutionsrouten zurückfällt.
+- **Abnahme:** `bun dev/completion-acceptance.js` erreicht mit Seed 42 bei Tick **6.077** weiterhin exakt **42/42 Erfolge** und **78/78 Bestiarium-Formen**. Fokus-Regressionen decken Fährten→Köder→Grundform, Ködertraining, Ökologie-Bonus, Save-Migration und Modulgrenzen ab; `bun test` läuft mit **119/119** Tests grün.
+- **Nicht in diesem Verticalschnitt:** Elite-Exemplare mit Trophäenrahmen und Sonderkomponenten wandern in Phase 51, weil sie Boss-/Trophäen-Content statt Kern-Bestiarium-Navigation sind.
 
 [ ] **Phase 49 – Dynamische Aufträge, Krisen & Entscheidungen** — mehr kurze Spannungsbögen zwischen den langen Aufbauzielen.
 - **Auftragsbrett:** 3 rotierende Ziele mit klarer Laufzeit und Belohnung: "erobere eine Anlage", "gewinne mit riskantem Angriff", "entwickle eine C-Rang-Kreatur", "schmiede ein episches Teil", "überlebe eine Belagerung aktiv".
@@ -376,7 +378,7 @@ Diese Phasen sind bewusst als **offene, nicht begonnene** Arbeitspakete formulie
 
 [ ] **Phase 51 – Boss-Leiter, Trophäen & einzigartige Beute** — mehr erinnerbare Höhepunkte statt nur steigender Zahlen.
 - **Boss-Leiter:** nach Regionen, Echo-Zyklen und Bestiarium-Meilensteinen erscheinen handgebaute Bosse mit klaren Mechaniken, nicht nur höheren Werten. Action-, Taktik- und Auto-Auflösung bekommen je eine passende Variante.
-- **Trophäenraum:** besiegte Bosse, vollständige Kreaturenlinien, perfekte Aufträge und 100%-Meilensteine werden im Reichspanorama sichtbar. Fortschritt bekommt eine räumliche Spur.
+- **Elite-Exemplare & Trophäenraum:** seltene Varianten vollständiger Bestiarium-Linien dienen als Mini-Bosse oder Jagdziele mit Portrait-Rahmen, Sonderkomponente und sichtbarer Trophäe. Besiegte Bosse, vollständige Kreaturenlinien, perfekte Aufträge und 100%-Meilensteine werden im Reichspanorama sichtbar.
 - **Einzigartige Drops:** Bosse schalten konkrete Artefakte, Baupläne, Skins, Bannerränge oder Spezialtalente frei. Keine Itemflut, sondern wenige merkbare Belohnungen.
 - **Wiederholbare Meisterschaft:** optionale Hardmode-Versionen mit Modifikatoren und kosmetischen/kleinen mechanischen Boni für spätere Runs.
 - **Abnahme:** Jeder Boss hat ein eindeutiges Profil, eine lesbare Belohnung und einen Auto-Modus-Ausgang; Niederlagen erzeugen Lernhinweis statt Frust.

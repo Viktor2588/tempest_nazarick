@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/systems-action.js', 'js/achievements.js', 'js/completion-planner.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/render/action-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/ui-action-combat.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-bestiary.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/systems-action.js', 'js/achievements.js', 'js/completion-planner.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/render/action-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/ui-action-combat.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -121,6 +121,9 @@ tryRender('Kompendium-Modal (Erfolge/Statistik/Bestiarium)', function () {
   window.GameUI.openCodexModal('bestiarium');
   if (document.querySelectorAll('#modal-root .beast-card').length !== window.GameData.creatures.length) throw new Error('Bestiarium unvollständig');
   if (!document.querySelector('#modal-root .beast-card.locked')) throw new Error('keine gesperrten Formen markiert');
+  if (!document.querySelector('#modal-root .hunt-board')) throw new Error('Bestiarium-Jagdboard fehlt');
+  if (!document.querySelector('#modal-root .beast-hint')) throw new Error('Bestiarium-Hinweise fehlen');
+  if (!document.querySelector('#modal-root .hunt-card .btn')) throw new Error('Köder-Aktion fehlt');
   document.querySelector('.modal-close').click();
 });
 tryRender('Einstellungs-Modal (Effektstufe umschaltbar)', function () {

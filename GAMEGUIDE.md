@@ -139,6 +139,21 @@ transparente Atlanten decken damit auch Geist, Greif, Baumhirte, Phönix, Kobold
 Hasenmensch, Tengu, Meervolk, Untot, Dämon, Vampir, Golem, Insekt und Drache ab. Dadurch
 bleiben die Völker auch auf kleinen Handy-Karten sofort unterscheidbar.
 
+### Bestiarium-Jagden
+Im Kompendium zeigt der Tab **Bestiarium** nicht entdeckte Formen als gesperrte Karten mit
+Hinweisen. Solange eine Linie noch unvollständig ist, können Siege und Orte passende
+**Fährten** liefern: Regionen, Echo-Knoten, Außenanlagen und Fundorte verraten jeweils andere
+Linien. Drei Fährten derselben Linie lassen sich zu einem **Köder** binden.
+
+Eine Köderjagd ist kein kostenloser Sprung ins Endgame: Sie ruft fehlende Grundformen nur,
+wenn Rang und Kapazität passen, benennt oder trainiert passende Vorformen und sammelt kleinere
+Teile fehlender Evolutionsressourcen. Damit wird eine Lücke gezielt bearbeitbar, ohne Level-,
+Seelen- oder Herrscher-Gates zu umgehen.
+
+Vollständig entdeckte Linien geben kleine **Ökologie-Boni** wie mehr Produktion, Wissen,
+Armeestärke oder Beute. Die Boni sind bewusst niedrig, machen Sammeln aber nützlich und geben
+jedem vollständigen Volk eine mechanische Spur im Reich.
+
 ### Skills
 Jede benannte Kreatur hat **Skill-Slots** (Kapazität nach Rang, 2–6). Signatur-Skills kommen über Linie
 und Aspekt; weitere **gewöhnliche Skills** (Jäger, Berserker, Kriegstanz …) lernst du in freie

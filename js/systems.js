@@ -109,6 +109,11 @@
   function isWounded(state, inst) { return !!(inst && inst.woundedUntil && inst.woundedUntil > state.tick); }
   function woundRemaining(state, inst) { return isWounded(state, inst) ? (inst.woundedUntil - state.tick) : 0; }
   var WOUND_PENALTY = 0.5;
+  var HUNT_TRACKS_PER_LURE = 3;
+
+  function bestiaryAPI() { return root.GameBestiaryHunts || null; }
+  function bestiaryEcologyEffects(state) { var api = bestiaryAPI(); return api ? api.ecologyEffects(state) : {}; }
+  function awardBestiaryTracks(state, sourceId, amount) { var api = bestiaryAPI(); return api ? api.awardTracks(state, sourceId, amount) : null; }
 
   // ---------- Boni (Magie, Forschung, Herrscher-Stufe, Signatur) ----------
   // Verrechnet eine Effekt-Map in den Bonus-Akkumulator. 'produce' ist eine
@@ -161,6 +166,8 @@
       var rv = GD().rival(rid);
       if (rv) addEffect(b, rv.defeatBonus, 1);
     });
+    // Ökologie-Boni aus vollständig dokumentierten Bestiarium-Linien.
+    addEffect(b, bestiaryEcologyEffects(state), 1);
     // Affinitäts-Bonus (dauerhaft)
     if (aff) addEffect(b, aff.bonus, 1);
     // Temporäre Buffs/Debuffs (Events) – nur aktive
@@ -1523,16 +1530,20 @@
       state.mapSiteLevels = state.mapSiteLevels || {};
       state.claimedMapSites.push(siteId); state.mapSiteLevels[siteId] = 1;
       if (site.forgeReward) addForgeMaterials(state, site.forgeReward);
+      var resourceTrack = awardBestiaryTracks(state, site.id, 1);
       log(state, site.icon + ' ' + site.name + ' gesichert – die Anlage produziert nun für Tempest.', 'gold');
       if (site.forgeReward) log(state, '⚒️ Schmiedefund: ' + forgeMaterialsText(site.forgeReward) + '.', 'gold');
-      return { ok: true, kind: 'resource', site: site, level: 1, forgeReward: site.forgeReward || null };
+      if (resourceTrack) log(state, '🔎 Bestiarium-Fährte: ' + resourceTrack.line + ' +' + resourceTrack.amount + ' (' + resourceTrack.tracks + '/' + HUNT_TRACKS_PER_LURE + ').', resourceTrack.ready ? 'gold' : '');
+      return { ok: true, kind: 'resource', site: site, level: 1, forgeReward: site.forgeReward || null, track: resourceTrack };
     }
     state.exploredMapSites = state.exploredMapSites || [];
     state.exploredMapSites.push(siteId); addResources(state, site.rewards || {});
     if (site.forgeReward) addForgeMaterials(state, site.forgeReward);
+    var discoveryTrack = awardBestiaryTracks(state, site.id, 2);
     log(state, site.icon + ' ' + site.name + ' erkundet – der Fund wurde geborgen.', 'gold');
     if (site.forgeReward) log(state, '⚒️ Schmiedefund: ' + forgeMaterialsText(site.forgeReward) + '.', 'gold');
-    return { ok: true, kind: 'discovery', site: site, rewards: site.rewards || {}, forgeReward: site.forgeReward || null };
+    if (discoveryTrack) log(state, '🔎 Bestiarium-Fährte: ' + discoveryTrack.line + ' +' + discoveryTrack.amount + ' (' + discoveryTrack.tracks + '/' + HUNT_TRACKS_PER_LURE + ').', discoveryTrack.ready ? 'gold' : '');
+    return { ok: true, kind: 'discovery', site: site, rewards: site.rewards || {}, forgeReward: site.forgeReward || null, track: discoveryTrack };
   }
   function canUpgradeMapSite(state, siteId) {
     var site = GD().strategicSite(siteId), level = (state.mapSiteLevels && state.mapSiteLevels[siteId]) || 0;
@@ -1587,6 +1598,7 @@
       state.metrics.armyVictories = (state.metrics.armyVictories || 0) + 1;
       if (leader) { addCreatureXp(state, leader, round(region.xp * 1.15)); addSkillXp(state, leader, round(region.xp * 0.5)); }
       if (rng() < Math.min(0.9, region.dropChance * rk.drop)) drop = makeDropItem(state, region, risk);
+      var armyTrack = awardBestiaryTracks(state, region.id, risk === 'riskant' ? 2 : 1);
     } else if (risk === 'riskant' && leader) {
       releaseCreatureEquipment(state, leader); leaderDead = true;
       Object.keys(group.troops || {}).forEach(function (speciesId) { removeTroopStack(state, group.id, speciesId, group.troops[speciesId]); });
@@ -1603,7 +1615,8 @@
     if (warded) log(state, '🛡️ Die Feldbarriere fängt einen Teil der Verluste ab.', 'good');
     if (leaderDead) log(state, '☠️ Anführer ' + leader.name + ' ist im riskanten Feldzug gefallen.', 'bad');
     if (drop) log(state, '🎁 Schmiedefund: ' + drop.name + '.', 'gold');
-    return { ok: true, won: won, partial: partial, power: power, regionPower: region.power, losses: losses, totalLosses: totalLosses, gains: gains, drop: drop, leaderDead: leaderDead, warded: warded };
+    if (armyTrack) log(state, '🔎 Bestiarium-Fährte: ' + armyTrack.line + ' +' + armyTrack.amount + ' (' + armyTrack.tracks + '/' + HUNT_TRACKS_PER_LURE + ').', armyTrack.ready ? 'gold' : '');
+    return { ok: true, won: won, partial: partial, power: power, regionPower: region.power, losses: losses, totalLosses: totalLosses, gains: gains, drop: drop, leaderDead: leaderDead, warded: warded, track: armyTrack || null };
   }
 
   // ============================================================
@@ -1782,6 +1795,7 @@
       if (node.boss) state.metrics.echoBosses = (state.metrics.echoBosses || 0) + 1;
       group.battlesWon = (group.battlesWon || 0) + 1;
       if (leader) { addCreatureXp(state, leader, Math.max(20, round(node.power * 0.1))); addSkillXp(state, leader, Math.max(10, round(node.power * 0.04))); }
+      var echoTrack = awardBestiaryTracks(state, node.environmentId, node.boss ? 2 : 1);
     } else if (risk === 'riskant' && leader) {
       releaseCreatureEquipment(state, leader); leaderDead = true;
       Object.keys(group.troops || {}).forEach(function (speciesId) { removeTroopStack(state, group.id, speciesId, group.troops[speciesId]); });
@@ -1793,7 +1807,8 @@
     log(state, won ? ('🌀 ' + group.name + ' bezwingt ' + node.name + '.') : ('💥 ' + group.name + ' scheitert im Echo ' + node.name + '.'), won ? 'good' : 'bad');
     if (node.boss && won) log(state, '👁️ Der Echo-Kern zerbricht. Ein stärkerer Zyklus kann geöffnet werden.', 'gold');
     if (totalLosses) log(state, '⚰️ Echo-Verluste: ' + totalLosses + '.', won ? '' : 'bad');
-    return { ok: true, won: won, partial: partial, node: node, power: power, nodePower: node.power, losses: losses, totalLosses: totalLosses, gains: gains, forgeGains: forgeGains, leaderDead: leaderDead, warded: warded };
+    if (echoTrack) log(state, '🔎 Bestiarium-Fährte: ' + echoTrack.line + ' +' + echoTrack.amount + ' (' + echoTrack.tracks + '/' + HUNT_TRACKS_PER_LURE + ').', echoTrack.ready ? 'gold' : '');
+    return { ok: true, won: won, partial: partial, node: node, power: power, nodePower: node.power, losses: losses, totalLosses: totalLosses, gains: gains, forgeGains: forgeGains, leaderDead: leaderDead, warded: warded, track: echoTrack || null };
   }
   function echoBossCompleted(state) {
     if (!state.echoes || !state.echoes.nodes) return false;
@@ -1982,7 +1997,9 @@
     }
     // Eroberung
     var claimed = false;
+    var track = null;
     if (won && state.claimedRegions.indexOf(r.id) < 0) { state.claimedRegions.push(r.id); claimed = true; }
+    if (won) track = awardBestiaryTracks(state, r.id, exp.risk === 'riskant' ? 2 : 1);
     state.metrics.expeditions = (state.metrics.expeditions || 0) + 1;
     if (won) state.metrics.expeditionsWon = (state.metrics.expeditionsWon || 0) + 1;
     // Log
@@ -1991,9 +2008,10 @@
                   : (partial ? ('⚔️ Teilerfolg in ' + r.name + '.') : ('💀 Niederlage in ' + r.name + '.'));
     log(state, msg, kind);
     if (drop) log(state, '🎁 Schmiedefund: ' + drop.name + '.', 'gold');
+    if (track) log(state, '🔎 Bestiarium-Fährte: ' + track.line + ' +' + track.amount + ' (' + track.tracks + '/' + HUNT_TRACKS_PER_LURE + ').', track.ready ? 'gold' : '');
     if (wounded.length) log(state, '🩹 ' + wounded.length + ' Einheit(en) kehren verwundet zurück.', 'bad');
     if (dead.length) log(state, '☠️ ' + dead.length + ' Einheit(en) sind im riskanten Einsatz gefallen. Ihre Ausrüstung wurde geborgen.', 'bad');
-    return { regionId: r.id, won: won, partial: partial, gains: gains, xpEach: xpEach, drop: drop, claimed: claimed, power: power, regionPower: r.power, risk: exp.risk, wounded: wounded.length, dead: dead.length };
+    return { regionId: r.id, won: won, partial: partial, gains: gains, xpEach: xpEach, drop: drop, claimed: claimed, power: power, regionPower: r.power, risk: exp.risk, wounded: wounded.length, dead: dead.length, track: track };
   }
 
   // ---------- Rivalen & Bedrohung ----------
@@ -2678,11 +2696,13 @@
   root.GameSystemsInternal = {
     GD: GD, rng: rng, round: round, clamp: clamp, RISK: RISK,
     log: log, findCreature: findCreature, findArmyGroup: findArmyGroup, stackCount: stackCount,
+    addTroopStack: addTroopStack,
     creatureStats: creatureStats, rulerStats: rulerStats,
     regionUnlocked: regionUnlocked, creatureBusy: creatureBusy, isWounded: isWounded,
     computeBonuses: computeBonuses, addResources: addResources,
     addRulerXp: addRulerXp, addCreatureXp: addCreatureXp, addSkillXp: addSkillXp,
-    makeDropItem: makeDropItem, releaseCreatureEquipment: releaseCreatureEquipment
+    makeDropItem: makeDropItem, releaseCreatureEquipment: releaseCreatureEquipment,
+    awardBestiaryTracks: awardBestiaryTracks
   };
 
   root.GameSystems = {

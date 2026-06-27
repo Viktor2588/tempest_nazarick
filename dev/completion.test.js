@@ -4,6 +4,7 @@ import "../js/data-tables.js";
 import "../js/data.js";
 import "../js/state.js";
 import "../js/systems.js";
+import "../js/systems-bestiary.js";
 import "../js/systems-combat.js";
 import "../js/systems-skirmish.js";
 import "../js/systems-siege.js";
@@ -92,6 +93,24 @@ test("Evolutionziele werden zum Leveln in die Armee versetzt", () => {
   const action = SYS.autoPlayStep(state);
   expect(action.goal.id).toBe("goblin_lord");
   expect(elite.job).toBe("armee");
+});
+
+test("Bestiarium-Planer nutzt vorbereitete Fährten und Köderjagden", () => {
+  const state = rich(GST.createDefault());
+  state.seenSpecies = GD.creatures.map(function (species) { return species.id; })
+    .filter(function (id) { return id !== "fee"; });
+  state.creatures = state.creatures.filter(function (creature) { return creature.speciesId !== "fee"; });
+  state.bestiaryHunts.tracks.Geist = SYS.HUNT_TRACKS_PER_LURE;
+  state.completion.enabled = true;
+  state.completion.target = "bestiary";
+
+  const first = SYS.autoPlayStep(state);
+  expect(first.goal).toEqual({ kind: "bestiary", id: "fee", title: "Fee" });
+  expect(state.bestiaryHunts.lures.Geist).toBe(1);
+
+  const second = SYS.autoPlayStep(state);
+  expect(second.goal).toEqual({ kind: "bestiary", id: "fee", title: "Fee" });
+  expect(state.seenSpecies).toContain("fee");
 });
 
 test("Completion-Modus automatisiert den sonst unerreichbaren Taktik-Erfolg", () => {

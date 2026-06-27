@@ -7,6 +7,7 @@ import "../js/data-tables.js";
 import "../js/data.js";
 import "../js/state.js";
 import "../js/systems.js";
+import "../js/systems-bestiary.js";
 import "../js/systems-combat.js";
 import "../js/achievements.js";
 
@@ -52,6 +53,13 @@ test("normalize vereinigt gehaltene Spezies und bereinigt korrupte Werte", () =>
   const broken = GST.createDefault();
   broken.seenSpecies = "kaputt";
   expect(Array.isArray(GST.normalize(broken).seenSpecies)).toBe(true);
+
+  const huntDirty = GST.createDefault();
+  huntDirty.bestiaryHunts = { tracks: { Schleim: 2, Erfunden: 99 }, lures: { Goblin: "3" } };
+  const huntClean = GST.normalize(huntDirty);
+  expect(huntClean.bestiaryHunts.tracks.Schleim).toBe(2);
+  expect(huntClean.bestiaryHunts.tracks.Erfunden).toBeUndefined();
+  expect(huntClean.bestiaryHunts.lures.Goblin).toBe(3);
 });
 
 test("Save-Roundtrip erhält den Bestiarium-Fortschritt", () => {
@@ -74,4 +82,50 @@ test("alle Kreaturen besitzen Linie + endliche Basiswerte (Bestiarium-Daten)", (
     });
     (sp.evolvesTo || []).forEach((e) => { expect(GD.creature(e.to)).toBeTruthy(); });
   });
+});
+
+test("Fährten lassen sich in Köder binden und locken eine Grundform an", () => {
+  const s = GST.createDefault();
+  s.creatures = s.creatures.filter((c) => c.speciesId !== "fee");
+  s.seenSpecies = s.seenSpecies.filter((id) => id !== "fee");
+  s.resources.magie = 0; // Köderjagd nutzt Fährten statt normaler Beschwörungskosten
+  s.buildings.beschwoerungskreis = 1;
+  s.buildings.wohnbezirk = 3;
+
+  const track = SYS.awardBestiaryTracks(s, "seelenbrunnen", 1);
+  expect(track.line).toBe("Untot");
+  s.bestiaryHunts.tracks.Geist = 3;
+  expect(SYS.canPrepareBestiaryLure(s, "Geist").ok).toBe(true);
+  expect(SYS.prepareBestiaryLure(s, "Geist").ok).toBe(true);
+  const hunt = SYS.useBestiaryLure(s, "fee");
+  expect(hunt.ok).toBe(true);
+  expect(hunt.action).toBe("summon");
+  expect(s.seenSpecies).toContain("fee");
+  expect(s.bestiaryHunts.lures.Geist).toBe(0);
+});
+
+test("Köderjagd trainiert Evolutionsvorläufer ohne harte Gates zu umgehen", () => {
+  const s = GST.createDefault();
+  const elite = GST.newCreature(s, "hobgoblin");
+  elite.named = true;
+  elite.name = "Jagdschüler";
+  elite.level = 1;
+  elite.armyGroupId = null;
+  s.creatures.push(elite);
+  s.seenSpecies = GD.creatures.map((sp) => sp.id).filter((id) => id !== "goblin_lord");
+  s.bestiaryHunts.lures.Goblin = 1;
+  const before = elite.level;
+  const hunt = SYS.useBestiaryLure(s, "goblin_lord");
+  expect(hunt.ok).toBe(true);
+  expect(hunt.action).toBe("train");
+  expect(elite.level).toBeGreaterThan(before);
+});
+
+test("vollständige Linien geben kleine Ökologie-Boni", () => {
+  const s = GST.createDefault();
+  const before = SYS.computeBonuses(s).produktionMagie;
+  const slimeLine = GD.creatures.filter((sp) => sp.line === "Schleim").map((sp) => sp.id);
+  s.seenSpecies = Array.from(new Set(s.seenSpecies.concat(slimeLine)));
+  expect(SYS.bestiaryLineComplete(s, "Schleim")).toBe(true);
+  expect(SYS.computeBonuses(s).produktionMagie).toBeGreaterThan(before);
 });

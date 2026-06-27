@@ -2,7 +2,7 @@
    ui-progress.js — Kompendium: Erfolge, Reichsstatistik & Bestiarium.
    Erweitert GameUI nach ui.js; klassisches Script ohne Build.
    Liest GameAchievements + state.metrics + state.seenSpecies;
-   verändert keinen Zustand.
+   Bestiarium-Jagdknöpfe verändern gezielt Zustand über GameSystems.
    ============================================================ */
 (function () {
   'use strict';
@@ -159,8 +159,54 @@
 
   function seenSpecies(s, id) { return (s.seenSpecies || []).indexOf(id) >= 0; }
 
-  function beastCard(s, sp) {
+  function huntLineCard(s, line, ui) {
+    var status = SYS.bestiaryLineStatus ? SYS.bestiaryLineStatus(s, line) : null;
+    if (!status) return null;
+    var canBind = SYS.canPrepareBestiaryLure ? SYS.canPrepareBestiaryLure(s, line) : { ok: false, reason: '' };
+    var actions = [];
+    if (!status.complete) {
+      actions.push(btn('🪤 Köder binden', function () {
+        var res = SYS.prepareBestiaryLure(s, line);
+        toast(res.ok ? ('🪤 Köder für ' + line + ' gebunden.') : res.reason, res.ok ? 'gold' : 'bad');
+        ui.commit(); ui.openCodexModal('bestiarium');
+      }, { small: true, cls: canBind.ok ? 'btn-gold' : '', disabled: !canBind.ok, cost: canBind.ok ? (status.tracks + '/' + status.tracksNeeded + ' Fährten') : canBind.reason }));
+    }
+    return el('div', { class: 'hunt-card' + (status.complete ? ' complete' : '') }, [
+      el('div', { class: 'hunt-head' }, [
+        el('span', { class: 'hunt-icon', text: status.icon }),
+        el('div', { class: 'hunt-title' }, [
+          el('div', { class: 'beast-name', text: line }),
+          el('div', { class: 'beast-desc', text: status.source })
+        ]),
+        el('span', { class: 'pill', text: status.seen + '/' + status.total })
+      ]),
+      el('div', { class: 'hunt-track' }, [
+        bar(Math.min(1, status.tracks / status.tracksNeeded), status.complete ? 'good' : 'gold'),
+        el('div', { class: 'beast-evo', text: status.complete ? ('Ökologie-Bonus aktiv: ' + status.bonus) : ('Fährten ' + status.tracks + '/' + status.tracksNeeded + ' · Köder ' + status.lures) })
+      ]),
+      el('div', { class: 'beast-desc', text: status.clue }),
+      actions.length ? el('div', { class: 'card-actions' }, actions) : null
+    ]);
+  }
+
+  function buildHuntBoard(s, grouped, ui) {
+    if (!SYS.bestiaryLineStatus) return null;
+    var board = el('div', { class: 'hunt-board' });
+    board.appendChild(el('div', { class: 'section-label', text: 'Bestiarium-Jagden' }));
+    board.appendChild(el('p', { class: 'muted', text: 'Siege und Fundorte liefern Linien-Fährten. Drei Fährten binden einen Köder; Köderjagden locken Grundformen an oder treiben die nächste Evolution gezielt voran.' }));
+    var grid = el('div', { class: 'hunt-grid' });
+    grouped.lines.forEach(function (line) {
+      var card = huntLineCard(s, line, ui);
+      if (card) grid.appendChild(card);
+    });
+    board.appendChild(grid);
+    return board;
+  }
+
+  function beastCard(s, sp, ui) {
     if (!seenSpecies(s, sp.id)) {
+      var hint = SYS.bestiaryHint ? SYS.bestiaryHint(s, sp.id) : 'Noch nicht entdeckt.';
+      var hunt = SYS.canUseBestiaryLure ? SYS.canUseBestiaryLure(s, sp.id) : { ok: false, reason: '' };
       return el('div', { class: 'beast-card locked' }, [
         el('div', { class: 'beast-head' }, [
           el('div', { class: 'card-emoji', text: '❔' }),
@@ -168,6 +214,14 @@
             el('div', { class: 'beast-name', text: '???' }),
             el('div', { class: 'beast-sub' }, [rankBadge(sp.rank)])
           ])
+        ]),
+        el('div', { class: 'beast-hint', text: hint }),
+        el('div', { class: 'card-actions' }, [
+          btn('🪤 Köderjagd', function () {
+            var res = SYS.useBestiaryLure(s, sp.id);
+            toast(res.ok ? (res.text || ('🪤 Jagd auf ' + sp.line + '.')) : res.reason, res.ok ? 'gold' : 'bad');
+            ui.commit(); ui.openCodexModal('bestiarium');
+          }, { small: true, cls: hunt.ok ? 'btn-gold' : '', disabled: !hunt.ok, cost: hunt.ok ? '1 Köder' : hunt.reason })
         ])
       ]);
     }
@@ -191,7 +245,7 @@
     ]);
   }
 
-  function buildBestiary(s) {
+  function buildBestiary(s, ui) {
     var box = el('div', { class: 'codex-beast' });
     var grouped = speciesByLine(), total = GD.creatures.length;
     var seenCount = GD.creatures.filter(function (sp) { return seenSpecies(s, sp.id); }).length;
@@ -199,12 +253,14 @@
       bar(seenCount / total, 'gold'),
       el('div', { class: 'bar-label', text: '📖 ' + seenCount + ' / ' + total + ' Formen entdeckt' })
     ]));
+    var huntBoard = buildHuntBoard(s, grouped, ui);
+    if (huntBoard) box.appendChild(huntBoard);
     grouped.lines.forEach(function (ln) {
       var forms = grouped.byLine[ln];
       var seen = forms.filter(function (sp) { return seenSpecies(s, sp.id); }).length;
       box.appendChild(el('div', { class: 'section-label', text: ln + ' · ' + seen + '/' + forms.length }));
       var grid = el('div', { class: 'beast-grid' });
-      forms.forEach(function (sp) { grid.appendChild(beastCard(s, sp)); });
+      forms.forEach(function (sp) { grid.appendChild(beastCard(s, sp, ui)); });
       box.appendChild(grid);
     });
     return box;
@@ -226,7 +282,7 @@
         tabBtn('bestiarium', '📖 Bestiarium')
       ]));
       var view = this._codexTab === 'statistik' ? buildStats(s)
-        : (this._codexTab === 'bestiarium' ? buildBestiary(s) : buildAchievements(s));
+        : (this._codexTab === 'bestiarium' ? buildBestiary(s, self) : buildAchievements(s));
       body.appendChild(view);
       openModal('Kompendium', body, '📖', 'codex-modal');
     },

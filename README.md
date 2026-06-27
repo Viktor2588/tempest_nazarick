@@ -25,7 +25,8 @@ ausbaubare Ressourcenanlagen sowie optionale Fundorte mit einmaliger Beute.
 Die Desktop-Ansicht besitzt eine vollwertige Strategie-Spieloberfläche mit Seitenleiste,
 Ressourcen-HUD, interaktivem Tempest-Panorama, großer Abenteuerkarte und nahezu
 bildschirmfüllender Kampfbühne. Alle 20 Kreaturenlinien besitzen erkennbare lokale
-Monster-Portraits und eigene Board-Silhouetten; sechs lokale Biome und ein vollständiger
+Monster-Portraits, eigene Board-Silhouetten und aktive Bestiarium-Jagden mit Fährten,
+Ködern, Hinweisen und kleinen Ökologie-Boni; sechs lokale Biome und ein vollständiger
 Effektatlas tragen die Rasterkämpfe. Das lebendige Reichspanorama, ein materialisiertes
 Bezirksbrett und eine gemeinsame lokale SVG-Iconfamilie verbinden Szene und Management.
 Die illustrierte Weltkarte zeigt 18 echte Ortsobjekte, weich
@@ -93,6 +94,7 @@ js/
                     Expeditionen, Armeegruppen/Kartenbewegung, Rivalen/Bedrohung, Events,
                     Affinität, Fusion, Runenschmiede, Echo-Generator/-Kämpfe, Herrscher-Talente,
                     Skill-Meisterschaft, Auto-Modus, Freischaltungen/Gating
+  systems-bestiary.js Bestiarium-Jagden, Linienhinweise, Fährten/Köder und Ökologie-Boni
   systems-combat.js Taktischer 7×5-Elementkampf; erweitert GameSystems
   systems-skirmish.js Sturmeinsätze: Profile/Bossphasen, Konter, Haltungen, Ziele und Belohnungen
   systems-action.js Echtzeit-Action-Kampf: 30-Hz-Fixed-Step-Sim, Telegraf/Ausweichrolle, Hotbar, Gegnertypen + Boss, Combo (GameActionCombat)
@@ -134,7 +136,7 @@ dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
 
 ## Spielstand & Debugging
 
-- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v14 (alte Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt und Freischaltungen bleiben erhalten).
+- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v15 (alte Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt, Bestiarium-Fortschritt und Freischaltungen bleiben erhalten).
 - **Zurücksetzen:** im Spiel über **⚙️ Einstellungen** → „🗑 Spielstand
   zurücksetzen", oder in der Browser-Konsole:
   ```js
@@ -184,7 +186,7 @@ T.state.settings.watch = false;                   // wieder ausschalten
 **Headless (Node, ohne DOM)** – z. B. zum Tunen der Auto-Logik oder für Langzeit-Stabilität:
 ```js
 require('./js/data-tables.js'); require('./js/data.js'); require('./js/state.js');
-require('./js/systems.js'); require('./js/systems-combat.js');
+require('./js/systems.js'); require('./js/systems-bestiary.js'); require('./js/systems-combat.js');
 const GST = globalThis.GameState, SYS = globalThis.GameSystems, GD = globalThis.GameData;
 
 const s = GST.createDefault();
@@ -220,11 +222,12 @@ Erwartete Ausgabe (Soll-Stand):
 
 | Befehl                             | Ergebnis (Konsole zeigt die Detailzählung)   |
 |------------------------------------|----------------------------------------------|
+| `bun test`                         | `119 pass` · gesamte Suite grün              |
 | `bun test dev/sim.test.js`         | `1 pass` · `238 bestanden, 0 fehlgeschlagen` |
 | `bun test dev/domtest.test.js`     | `1 pass` · `78 bestanden, 0 fehlgeschlagen`  |
 | `bun test dev/playthrough.test.js` | `1 pass` · `61 bestanden, 0 fehlgeschlagen`  |
 | `bun test dev/skirmish-profiles.test.js` | `7 pass` · Profile/Haltungen/Ziele/Save grün |
-| `bun dev/completion-acceptance.js` | Tick `7810` · `42/42` Erfolge · `78/78` Formen |
+| `bun dev/completion-acceptance.js` | Tick `6077` · `42/42` Erfolge · `78/78` Formen |
 | `bun run balance`                  | Kraftkurven, Regionsbeute und Echo-Zyklen skalieren monoton |
 
 ### Screenshots (optional, Linux/WSL)

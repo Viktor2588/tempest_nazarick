@@ -244,6 +244,34 @@
     var paths = buildSpeciesPaths(), candidates = [];
     GD().creatures.forEach(function (target, dataIndex) {
       if ((state.seenSpecies || []).indexOf(target.id) >= 0) return;
+      if (SYS().canUseBestiaryLure) {
+        var hunt = SYS().canUseBestiaryLure(state, target.id);
+        if (hunt.ok) {
+          candidates.push({
+            kind: 'hunt',
+            executable: true,
+            target: target,
+            path: hunt.path || [],
+            priority: 0,
+            dataIndex: dataIndex,
+            depth: 0
+          });
+        }
+      }
+      if (SYS().canPrepareBestiaryLure) {
+        var lure = SYS().canPrepareBestiaryLure(state, target.line);
+        if (lure.ok) {
+          candidates.push({
+            kind: 'prepareLure',
+            executable: true,
+            target: target,
+            line: target.line,
+            priority: 1,
+            dataIndex: dataIndex,
+            depth: 0
+          });
+        }
+      }
       (paths[target.id] || []).forEach(function (path) {
         var candidate = candidateForPath(state, target, path);
         if (candidate) {
@@ -279,6 +307,12 @@
     } else if (plan.kind === 'summon') {
       var summoned = SYS().summon(state, plan.species.id);
       if (summoned.ok) result = { text: '✨ Grundform ' + plan.species.name + ' für ' + targetName + ' beschworen.' };
+    } else if (plan.kind === 'prepareLure') {
+      var lure = SYS().prepareBestiaryLure(state, plan.line || plan.target.line);
+      if (lure.ok) result = { text: '🪤 Köder für die Linie ' + lure.line + ' gebunden.' };
+    } else if (plan.kind === 'hunt') {
+      var hunted = SYS().useBestiaryLure(state, plan.target.id);
+      if (hunted.ok) result = { text: hunted.text || ('🪤 Köderjagd auf ' + targetName + '.') };
     } else if (plan.kind === 'build') {
       var built = SYS().build(state, plan.buildingId);
       if (built.ok) result = { text: GD().building(plan.buildingId).icon + ' Voraussetzung für ' + targetName + ' ausgebaut.' };
@@ -585,10 +619,18 @@
 
   function rivalAchievementPlan(state) {
     if (!achievementOpen(state, 'c_rivals')) return null;
+    var allSpeciesSeen = (state.seenSpecies || []).length >= GD().creatures.length;
+    var lateCompletion = allSpeciesSeen && ACH().unlockedCount(state) >= ACH().total() - 1;
     var rivals = GD().rivals.filter(function (rival) {
       return SYS().canCounterAttack(state, rival.id).ok;
     });
-    if (!rivals.length) return null;
+    if (!rivals.length) {
+      if (lateCompletion && !state.raid && (state.claimedRegions || []).length > 0
+        && (state.rivalsDefeated || []).length < GD().rivals.length) {
+        return { kind: 'provokeRaid', executable: true, achievementId: 'c_rivals', title: 'Bezwinger der Lords' };
+      }
+      return null;
+    }
     var uids = (state.creatures || []).filter(function (creature) {
       return !SYS().creatureBusy(state, creature.uid) && !SYS().isWounded(state, creature);
     }).map(function (creature) { return creature.uid; });
@@ -678,6 +720,10 @@
     } else if (plan.kind === 'counterRival') {
       var countered = SYS().counterAttackRival(state, plan.rival.id, plan.uids);
       if (countered.ok && countered.won) result = { text: '👑 ' + plan.rival.name + ' endgültig besiegt.' };
+    } else if (plan.kind === 'provokeRaid') {
+      state.threat = Math.max(state.threat || 0, SYS().THREAT_RAID);
+      var provoked = SYS().scheduleRaid(state);
+      if (provoked) result = { text: '⚠️ Rivalen-Ultimatum für „' + plan.title + '“ provoziert.' };
     } else if (plan.kind === 'advanceEcho') {
       var advanced = SYS().advanceEchoCycle(state);
       if (advanced.ok) result = { text: '🌀 Echo-Zyklus ' + advanced.cycle + ' für „' + plan.title + '“ geöffnet.' };

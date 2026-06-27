@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 14;
+  var VERSION = 15;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -124,6 +124,7 @@
       questProgress: 0,
       achievements: [],
       seenSpecies: [],
+      bestiaryHunts: { tracks: {}, lures: {} },
       completion: {
         enabled: false,
         target: 'all',
@@ -133,7 +134,7 @@
       },
       settings: { watch: false, watchDetailed: false, watchCooldownUntil: 0, watchHistory: [], effects: 'full' },
       log: [],
-      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, skirmishesPlayed: 0, skirmishesWon: 0, skirmishBestCombo: 0, skirmishObjectives: 0, seelenGesamt: 0 }
+      metrics: { summoned: 0, named: 0, evolutions: 0, expeditions: 0, expeditionsWon: 0, crafted: 0, tempered: 0, recipesUnlocked: 0, salvaged: 0, raidsRepelled: 0, fused: 0, armyVictories: 0, echoesCleared: 0, echoBosses: 0, tacticalWins: 0, skirmishesPlayed: 0, skirmishesWon: 0, skirmishBestCombo: 0, skirmishObjectives: 0, bestiaryTracks: 0, bestiaryLures: 0, bestiaryHunts: 0, seelenGesamt: 0 }
     };
     var slime = newCreature(s, 'schleim');
     var goblins = newCreature(s, 'goblin');
@@ -228,6 +229,21 @@
     if (!Array.isArray(s.seenSpecies)) s.seenSpecies = [];
     (s.creatures || []).forEach(function (c) { if (c && c.speciesId && s.seenSpecies.indexOf(c.speciesId) < 0) s.seenSpecies.push(c.speciesId); });
     s.seenSpecies = s.seenSpecies.filter(function (id, i, a) { return !!GD().creature(id) && a.indexOf(id) === i; });
+    // Bestiarium-Jagden v15: Fährten und gebundene Köder je Kreaturenlinie.
+    if (!s.bestiaryHunts || typeof s.bestiaryHunts !== 'object' || Array.isArray(s.bestiaryHunts)) {
+      s.bestiaryHunts = JSON.parse(JSON.stringify(def.bestiaryHunts));
+    }
+    fill(s.bestiaryHunts, def.bestiaryHunts);
+    if (!s.bestiaryHunts.tracks || typeof s.bestiaryHunts.tracks !== 'object' || Array.isArray(s.bestiaryHunts.tracks)) s.bestiaryHunts.tracks = {};
+    if (!s.bestiaryHunts.lures || typeof s.bestiaryHunts.lures !== 'object' || Array.isArray(s.bestiaryHunts.lures)) s.bestiaryHunts.lures = {};
+    var validLines = {};
+    GD().creatures.forEach(function (sp) { validLines[sp.line] = true; });
+    ['tracks', 'lures'].forEach(function (bucket) {
+      for (var line in s.bestiaryHunts[bucket]) {
+        if (!validLines[line]) delete s.bestiaryHunts[bucket][line];
+        else s.bestiaryHunts[bucket][line] = Math.max(0, Math.floor(Number(s.bestiaryHunts[bucket][line]) || 0));
+      }
+    });
     if (!s.completion || typeof s.completion !== 'object' || Array.isArray(s.completion)) {
       s.completion = JSON.parse(JSON.stringify(def.completion));
     }
