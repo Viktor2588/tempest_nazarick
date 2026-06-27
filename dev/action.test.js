@@ -13,6 +13,7 @@ import "../js/systems-siege.js";
 import "../js/systems-battle.js";
 import "../js/systems-action.js";
 import "../js/systems-contracts.js";
+import "../js/systems-specializations.js";
 
 const GST = globalThis.GameState, A = globalThis.GameActionCombat, GD = globalThis.GameData;
 

@@ -89,6 +89,20 @@ du sie erfüllst – unter „Bald verfügbar" siehst du den Ausblick.
 **Kapazität:** Start 5 + 3 je Wohnbezirk-Stufe (Magie kann sie zusätzlich erhöhen). Ist sie
 voll, kannst du nicht beschwören.
 
+### Reichsdoktrinen & Spezialbezirke
+
+Im Reichs-Tab kannst du dein Reich auf eine von fünf Doktrinen ausrichten. **Eroberung**
+stärkt Armeen, **Forschung** Wissen und Magie, **Handel** Gold und Aufträge,
+**Monsterzucht** Beschwörung und Evolution, **Labyrinth** Verteidigung und Seelen.
+Bevorzugte Gebäude kosten 18 % weniger, andere 8 % mehr. Ohne Doktrin bleiben Kosten und
+Boni neutral. Die erste Wahl ist kostenlos; spätere Wechsel kosten Ressourcen und sperren
+eine weitere Neuausrichtung für 180 Sekunden.
+
+Zusätzlich besitzt das Reich zwei aktive **Spezialbezirks-Slots**, ab Herrscherstufe 3 drei.
+Kriegslager, Großarchiv, Basar, Brutgärten, Bastion und Runenviertel geben jeweils andere
+Produktions-, Kampf- oder Auftragsboni. Nur ein Exemplar jedes Bezirks kann aktiv sein.
+Ein Umbau kostet Gold und Material, dauert 45 Sekunden und gibt seinen Bonus erst danach.
+
 ---
 
 ## Kreaturen
@@ -153,6 +167,14 @@ Seelen- oder Herrscher-Gates zu umgehen.
 Vollständig entdeckte Linien geben kleine **Ökologie-Boni** wie mehr Produktion, Wissen,
 Armeestärke oder Beute. Die Boni sind bewusst niedrig, machen Sammeln aber nützlich und geben
 jedem vollständigen Volk eine mechanische Spur im Reich.
+
+### Anführerschulen
+
+Benannte, gerade nicht eingesetzte Eliten können eine von fünf Schulen besuchen:
+**Kommandeur**, **Jäger**, **Magier**, **Verteidiger** oder **Schmiedemeister**. Jede Schule
+verändert persönliche Werte, den Führungsbonus der Armee und mindestens eine Fähigkeit im
+taktischen beziehungsweise Echtzeit-Kampf. Ein späterer Schulwechsel ist möglich, kostet
+aber mehr als die erste Ausbildung.
 
 ### Skills
 Jede benannte Kreatur hat **Skill-Slots** (Kapazität nach Rang, 2–6). Signatur-Skills kommen über Linie
@@ -467,6 +489,12 @@ erforscht, schmiedet, zieht auf Expedition, kontert Rivalen, fusioniert …). Mi
 **🎬 Sichtbar** zeigt er jeden Einzelschritt in einem kurzen Dialog, pausiert dazwischen und
 führt einen Verlauf der letzten Aktionen. Mit **⏩ Vorspulen 5 min** springst du Spielzeit nach
 vorn. Du kannst jederzeit eingreifen oder den Modus wieder ausschalten.
+
+Im Reichs-Tab lässt sich die Auto-Doktrin fest auf eine Strategie setzen oder **adaptiv**
+lassen. Adaptiv folgt dem Auftragsprofil; im Completion-Autopilot wechselt sie begründet
+zwischen Monsterzucht, Eroberung, Forschung und Handel. Der Berater bildet dazu passende
+Anführerschulen aus und baut die empfohlenen Spezialbezirke, ohne den eigentlichen Zielplan
+zu verdrängen.
 
 ---
 

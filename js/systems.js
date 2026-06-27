@@ -114,10 +114,9 @@
   function bestiaryAPI() { return root.GameBestiaryHunts || null; }
   function bestiaryEcologyEffects(state) { var api = bestiaryAPI(); return api ? api.ecologyEffects(state) : {}; }
   function awardBestiaryTracks(state, sourceId, amount) { var api = bestiaryAPI(); return api ? api.awardTracks(state, sourceId, amount) : null; }
-
+  function specializationAPI() { return root.GameSpecializations || null; }
   // ---------- Boni (Magie, Forschung, Herrscher-Stufe, Signatur) ----------
-  // Verrechnet eine Effekt-Map in den Bonus-Akkumulator. 'produce' ist eine
-  // Direkt-Produktions-Map (pro Tick) und wird gesondert behandelt.
+  // Verrechnet Effekte; 'produce' bleibt eine direkte Produktions-Map pro Tick.
   function addEffect(b, eff, mult) {
     if (!eff) return;
     mult = (mult == null) ? 1 : mult;
@@ -166,8 +165,8 @@
       var rv = GD().rival(rid);
       if (rv) addEffect(b, rv.defeatBonus, 1);
     });
-    // Ökologie-Boni aus vollständig dokumentierten Bestiarium-Linien.
-    addEffect(b, bestiaryEcologyEffects(state), 1);
+    addEffect(b, bestiaryEcologyEffects(state), 1); // vollständige Bestiarium-Linien
+    var specializations = specializationAPI(); if (specializations) addEffect(b, specializations.effects(state), 1);
     // Affinitäts-Bonus (dauerhaft)
     if (aff) addEffect(b, aff.bonus, 1);
     // Temporäre Buffs/Debuffs (Events) – nur aktive
@@ -297,8 +296,9 @@
     var bd = GD().building(id); if (!bd) return null;
     var lvl = state.buildings[id] || 0;
     var rab = computeBonuses(state).bauRabatt || 0;
+    var specializations = specializationAPI(), direction = specializations ? specializations.buildingCostMultiplier(state, id) : 1;
     var cost = {};
-    for (var k in bd.cost) cost[k] = Math.max(1, round(bd.cost[k] * Math.pow(bd.growth, lvl) * (1 - rab)));
+    for (var k in bd.cost) cost[k] = Math.max(1, round(bd.cost[k] * Math.pow(bd.growth, lvl) * (1 - rab) * direction));
     return cost;
   }
   function canBuild(state, id) { return canAfford(state, buildingCost(state, id)); }
@@ -369,9 +369,9 @@
     // Multiplikatoren
     var all = 1 + b.produktionAll;
     rates.magie    *= all * (1 + b.produktionMagie);
-    rates.gold     *= all;
-    rates.material *= all;
-    rates.nahrung  *= all;
+    rates.gold     *= all * (1 + (b.produktionGold || 0));
+    rates.material *= all * (1 + (b.produktionMaterial || 0));
+    rates.nahrung  *= all * (1 + (b.produktionNahrung || 0));
     rates.seelen   *= all;
     rates.wissen   *= all * (1 + b.wissen);
 
@@ -476,6 +476,7 @@
     // Set-Boni (flache Werte)
     var sb = equippedSetBonus(state, inst.equipment);
     for (var ss in sb.stats) stats[ss] = (stats[ss] || 0) + sb.stats[ss];
+    var specializations = specializationAPI(); if (specializations) specializations.applyCreatureStats(state, inst, stats);
     // Verwundung: reduzierte Werte bis zur Heilung
     if (isWounded(state, inst)) {
       ['lp', 'ang', 'ver', 'mag', 'tmp'].forEach(function (k) { stats[k] = round((stats[k] || 0) * WOUND_PENALTY); });
@@ -1370,7 +1371,8 @@
     var mastery = 0, skills = leader.skills || [];
     skills.forEach(function (id) { mastery += skillProgress(leader, id).level || 1; });
     mastery = skills.length ? mastery / skills.length : 1;
-    return 0.12 + rank * 0.04 + (mastery - 1) * 0.025 + (leader.fusionLevel || 0) * 0.04;
+    var school = specializationAPI(), schoolBonus = school ? school.leaderArmyBonus(leader) : 0;
+    return 0.12 + rank * 0.04 + (mastery - 1) * 0.025 + (leader.fusionLevel || 0) * 0.04 + schoolBonus;
   }
   function armyGroupPower(state, group) {
     var leader = group && group.rulerLed ? state.herrscher : findCreature(state, group.leaderUid); if (!leader) return 0;

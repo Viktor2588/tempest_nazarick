@@ -8,7 +8,7 @@
   var root = (typeof window !== 'undefined') ? window : globalThis;
   var SAVE_KEY = 'tempest_kingdom_save_v2';
   var LEGACY_SAVE_KEY = 'tempest_nazarick_save_v1';
-  var VERSION = 16;
+  var VERSION = 17;
   var RULER_ARMY_ID = 0;
 
   function GD() { return root.GameData; }
@@ -37,6 +37,7 @@
       xp: 0,
       job: 'frei',
       aspect: null,
+      schoolId: null,
       woundedUntil: 0,
       fusionLevel: 0,
       skills: [],
@@ -140,6 +141,17 @@
         nextCrisisTick: 0,
         lastCrisisId: null
       },
+      specializations: {
+        doctrineId: null,
+        doctrineLockedUntil: 0,
+        autoDoctrine: 'adaptive',
+        districts: [null, null, null],
+        rebuild: null,
+        lastDoctrineReason: '',
+        doctrineChanges: 0,
+        districtChanges: 0,
+        schoolsAssigned: 0
+      },
       completion: {
         enabled: false,
         target: 'all',
@@ -228,6 +240,7 @@
       if (typeof c.xp !== 'number') c.xp = 0;
       if (!c.job) c.job = 'frei';
       if (c.aspect === undefined) c.aspect = null;
+      if (['commander', 'hunter', 'mage', 'defender', 'smith'].indexOf(c.schoolId) < 0 || !c.named) c.schoolId = null;
       if (typeof c.woundedUntil !== 'number') c.woundedUntil = 0;
       if (typeof c.fusionLevel !== 'number') c.fusionLevel = 0;
       if (typeof c.count !== 'number' || c.count < 1) c.count = 1;
@@ -280,6 +293,41 @@
     if (s.contracts.crisis != null && (typeof s.contracts.crisis !== 'object' || Array.isArray(s.contracts.crisis) ||
         typeof s.contracts.crisis.id !== 'string' || !isFinite(Number(s.contracts.crisis.stage)) ||
         (root.GameContracts && !root.GameContracts.CRISES.some(function (crisis) { return crisis.id === s.contracts.crisis.id; })))) s.contracts.crisis = null;
+    // Strategische Spezialisierungen v17: Doktrin, aktive Bezirke,
+    // laufender Umbau und Anführerschulen bleiben save-kompatibel.
+    if (!s.specializations || typeof s.specializations !== 'object' || Array.isArray(s.specializations)) {
+      s.specializations = JSON.parse(JSON.stringify(def.specializations));
+    }
+    fill(s.specializations, def.specializations);
+    var doctrineIds = ['conquest', 'research', 'trade', 'breeding', 'labyrinth'];
+    var districtIds = ['warcamp', 'archive', 'bazaar', 'hatchery', 'bastion', 'runeforge'];
+    if (doctrineIds.indexOf(s.specializations.doctrineId) < 0) s.specializations.doctrineId = null;
+    if (['adaptive'].concat(doctrineIds).indexOf(s.specializations.autoDoctrine) < 0) s.specializations.autoDoctrine = 'adaptive';
+    s.specializations.doctrineLockedUntil = Math.max(0, Math.floor(Number(s.specializations.doctrineLockedUntil) || 0));
+    s.specializations.doctrineChanges = Math.max(0, Math.floor(Number(s.specializations.doctrineChanges) || 0));
+    s.specializations.districtChanges = Math.max(0, Math.floor(Number(s.specializations.districtChanges) || 0));
+    s.specializations.schoolsAssigned = Math.max(0, Math.floor(Number(s.specializations.schoolsAssigned) || 0));
+    if (typeof s.specializations.lastDoctrineReason !== 'string') s.specializations.lastDoctrineReason = '';
+    if (!Array.isArray(s.specializations.districts)) s.specializations.districts = [];
+    s.specializations.districts = s.specializations.districts.slice(0, 3);
+    while (s.specializations.districts.length < 3) s.specializations.districts.push(null);
+    s.specializations.districts = s.specializations.districts.map(function (id) { return districtIds.indexOf(id) >= 0 ? id : null; });
+    var seenDistricts = {};
+    s.specializations.districts = s.specializations.districts.map(function (id) {
+      if (!id || seenDistricts[id]) return null;
+      seenDistricts[id] = true;
+      return id;
+    });
+    if (s.specializations.rebuild != null) {
+      var rebuild = s.specializations.rebuild;
+      if (!rebuild || typeof rebuild !== 'object' || Array.isArray(rebuild) ||
+          districtIds.indexOf(rebuild.districtId) < 0 || !isFinite(Number(rebuild.slot)) ||
+          !isFinite(Number(rebuild.readyTick))) s.specializations.rebuild = null;
+      else {
+        rebuild.slot = Math.max(0, Math.min(2, Math.floor(Number(rebuild.slot) || 0)));
+        rebuild.readyTick = Math.max(s.tick || 0, Math.floor(Number(rebuild.readyTick) || 0));
+      }
+    }
     if (!s.completion || typeof s.completion !== 'object' || Array.isArray(s.completion)) {
       s.completion = JSON.parse(JSON.stringify(def.completion));
     }

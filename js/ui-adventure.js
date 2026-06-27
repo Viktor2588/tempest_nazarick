@@ -109,6 +109,7 @@
           el('div', { class: 'name' }, [
             c.named ? c.name : sp.name, c.named ? rankBadge(sp.rank) : el('span', { class: 'badge', text: SYS.stackCount(c) + '× Stapel' }),
             c.named ? el('span', { class: 'badge named', text: '✦ benannt' }) : null,
+            (c.named && SYS.leaderSchool && SYS.leaderSchool(s, c)) ? el('span', { class: 'pill', text: SYS.leaderSchool(s, c).icon + ' ' + SYS.leaderSchool(s, c).name }) : null,
             (c.fusionLevel > 0) ? el('span', { class: 'badge named', text: '🧬 ×' + c.fusionLevel }) : null,
             (c.aspect && GD.aspect(c.aspect)) ? el('span', { class: 'pill', text: GD.aspect(c.aspect).icon + ' ' + GD.aspect(c.aspect).name }) : null,
             busy ? el('span', { class: 'pill tag-busy', text: 'unterwegs' }) : null,
@@ -152,6 +153,7 @@
       if (c.named) {
         var scap = SYS.skillCapacity(c);
         actions.push(btn('Skills ' + SYS.skillSlotsUsed(c) + '/' + scap, function () { self.openSkillModal(c); }, { small: true }));
+        if (self.openLeaderSchoolModal) actions.push(btn('🎓 Schule', function () { self.openLeaderSchoolModal(c); }, { small: true, cls: c.schoolId ? '' : 'btn-gold' }));
       }
       if (c.named && SYS.featureUnlocked(s, 'fusion') && (c.fusionLevel || 0) < SYS.FUSION_MAX) {
         actions.push(btn('🧬 Fusion', function () { self.openFusionModal(c); }, { small: true, cls: 'btn-gold' }));

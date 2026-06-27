@@ -9,6 +9,7 @@ import "../js/systems.js";
 import "../js/systems-bestiary.js";
 import "../js/systems-combat.js";
 import "../js/systems-contracts.js";
+import "../js/systems-specializations.js";
 import "../js/achievements.js";
 
 var GD = globalThis.GameData, GST = globalThis.GameState, SYS = globalThis.GameSystems;

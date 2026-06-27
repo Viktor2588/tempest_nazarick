@@ -12,6 +12,7 @@ import "../js/systems-skirmish.js";
 import "../js/systems-siege.js";
 import "../js/systems-battle.js";
 import "../js/systems-contracts.js";
+import "../js/systems-specializations.js";
 
 const GST = globalThis.GameState, B = globalThis.GameBattle, GD = globalThis.GameData;
 
