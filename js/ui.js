@@ -604,6 +604,7 @@
           el('span', { text: 'Kapazität ' }), el('b', { text: SYS.usedCapacity(s) + ' / ' + SYS.capacity(s) }),
           el('small', { text: 'Höhere Gebäudestufen steigern Produktion, Kapazität und Reichsboni.' })
         ]));
+        if (self.buildSpecializationBoard) box.appendChild(self.buildSpecializationBoard());
 
         function buildCard(bd) {
           var lvl = s.buildings[bd.id] || 0;

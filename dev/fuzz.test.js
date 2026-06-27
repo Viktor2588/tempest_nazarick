@@ -12,6 +12,7 @@ import "../js/systems.js";
 import "../js/systems-bestiary.js";
 import "../js/systems-combat.js";
 import "../js/systems-contracts.js";
+import "../js/systems-specializations.js";
 
 const GD = globalThis.GameData, GST = globalThis.GameState, SYS = globalThis.GameSystems;
 const SEEDS = [1, 7, 42, 99, 256, 1000, 31337, 65535, 104729, 999983, 0xC0FFEE, 0xDECAFBAD];

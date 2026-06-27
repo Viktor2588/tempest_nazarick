@@ -34,6 +34,8 @@ auslaufenden Entdeckungsnebel, Wegvorschauen und animierte Armeen; ein responsiv
 Inspector hält Ortsaktionen außerhalb der Szene. Das Spiel bleibt vollständig offline.
 Die Magie ist in aktive Kampf-/Abenteuerzauber der Arkanen Akademie, dauerhafte
 Reichsrituale und den Königreichs-Forschungsbaum getrennt.
+Fünf Reichsdoktrinen, frei belegbare Spezialbezirke und fünf Anführerschulen geben
+Wirtschaft, Feldzügen und benannten Eliten unterschiedliche strategische Profile.
 
 > Spieler-Handbuch (deutsch): siehe **[GAMEGUIDE.md](GAMEGUIDE.md)**
 > Verbindliche Spezifikation & Roadmap: siehe **[PLAN.md](PLAN.md)**
@@ -96,6 +98,7 @@ js/
                     Skill-Meisterschaft, Auto-Modus, Freischaltungen/Gating
   systems-bestiary.js Bestiarium-Jagden, Linienhinweise, Fährten/Köder und Ökologie-Boni
   systems-contracts.js Rotierende Aufträge, mehrstufige Reichskrisen, Pacing und Auto-Profile
+  systems-specializations.js Reichsdoktrinen, aktive Bezirke, Anführerschulen und Auto-Strategien
   systems-combat.js Taktischer 7×5-Elementkampf; erweitert GameSystems
   systems-skirmish.js Sturmeinsätze: Profile/Bossphasen, Konter, Haltungen, Ziele und Belohnungen
   systems-action.js Echtzeit-Action-Kampf: 30-Hz-Fixed-Step-Sim, Telegraf/Ausweichrolle, Hotbar, Gegnertypen + Boss, Combo (GameActionCombat)
@@ -106,6 +109,7 @@ js/
   ui-adventure.js   Karten-, Armee-, Echo-, Expeditions- und Kampf-UI; erweitert GameUI
   ui-progress.js    Kompendium, Erfolge, Statistik und Bestiarium
   ui-contracts.js   Auftragsbrett, Profilwahl und Krisenentscheidungen
+  ui-specializations.js Doktrin-, Bezirks- und Anführerschul-Steuerung
   ui-action.js      Sturmeinsatz-Karte, Missionswahl und kompaktes Action-Gefechtsmodal
   ui-action-combat.js Echtzeit-Gefecht-Karte + Canvas-Modal mit Touch-/Tastatursteuerung
   main.js           Init, Spiel-Loop (1 Tick/Sek.), Offline-Fortschritt, Auto-Save
@@ -114,6 +118,7 @@ dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
   domtest.test.js   DOM-Rendertest (jsdom)
   playthrough.test.js Komplettes Headless-Durchspiel (jsdom)
   contracts.test.js Auftrags-, Krisen-, Pacing-, Save- und Auto-Langlaufregressionen
+  specializations.test.js Doktrin-, Bezirks-, Schul-, Save- und Strategieregressionen
   canvas.test.js    Renderer-Vertrag, Hit-Test, Effektstufen und transparente Assets
   adventure-canvas.test.js Karten-View-Modell, Orts-/Armeeatlanten, Hit-Test und Blickrichtungen
   balance.js        Balance-Analyse der Kraftkurven (Bun)
@@ -139,7 +144,7 @@ dev/                Entwickler-Tests (NICHT Teil des Spiels) — siehe unten
 
 ## Spielstand & Debugging
 
-- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v16 (alte Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt, Bestiarium-, Auftrags- und Krisenfortschritt sowie Freischaltungen bleiben erhalten).
+- **Save-Key:** `tempest_kingdom_save_v2` im `localStorage`, internes Schema v17 (alte Stände werden automatisch migriert; bestehende Ausrüstung, Kartenfortschritt, Bestiarium-, Auftrags-, Krisen- und Spezialisierungsfortschritte sowie Freischaltungen bleiben erhalten).
 - **Zurücksetzen:** im Spiel über **⚙️ Einstellungen** → „🗑 Spielstand
   zurücksetzen", oder in der Browser-Konsole:
   ```js
@@ -168,7 +173,9 @@ eine sinnvolle Aktion aus (bauen, beschwören, benennen, entwickeln, Jobs zuweis
 forschen, Magie lernen, schmieden, Expeditionen, Gegenangriffe, Affinität, Fusion,
 Seelen opfern und freie Talentpunkte verteilen). Aufträge werden verfolgt und abgeholt;
 mehrstufige Krisen löst der Berater nach dem gewählten Profil **Sicher**, **Aggressiv**,
-**Sammler** oder **Fortschritt**.
+**Sammler** oder **Fortschritt**. Im Reichs-Tab wählt er zusätzlich eine feste Doktrin oder
+richtet sie **adaptiv** nach Profil und aktuellem Completion-Ziel aus, bildet passende
+Anführerschulen aus und belegt die Spezialbezirke.
 
 **Im Spiel:** Zuschauer-Modus per **👁️-Schalter oben in der Top-Bar** ein/aus, oder Tab
 *Übersicht* → Karte **„Zuschauer-Modus"** → **▶ Starten**.
@@ -192,6 +199,7 @@ T.state.settings.watch = false;                   // wieder ausschalten
 ```js
 require('./js/data-tables.js'); require('./js/data.js'); require('./js/state.js');
 require('./js/systems.js'); require('./js/systems-bestiary.js'); require('./js/systems-combat.js');
+require('./js/systems-contracts.js'); require('./js/systems-specializations.js');
 const GST = globalThis.GameState, SYS = globalThis.GameSystems, GD = globalThis.GameData;
 
 const s = GST.createDefault();
@@ -227,13 +235,14 @@ Erwartete Ausgabe (Soll-Stand):
 
 | Befehl                             | Ergebnis (Konsole zeigt die Detailzählung)   |
 |------------------------------------|----------------------------------------------|
-| `bun test`                         | `128 pass` · gesamte Suite grün              |
+| `bun test`                         | `134 pass` · gesamte Suite grün              |
 | `bun test dev/sim.test.js`         | `1 pass` · `238 bestanden, 0 fehlgeschlagen` |
-| `bun test dev/domtest.test.js`     | `1 pass` · `81 bestanden, 0 fehlgeschlagen`  |
+| `bun test dev/domtest.test.js`     | `1 pass` · `82 bestanden, 0 fehlgeschlagen`  |
 | `bun test dev/playthrough.test.js` | `1 pass` · `61 bestanden, 0 fehlgeschlagen`  |
 | `bun test dev/skirmish-profiles.test.js` | `7 pass` · Profile/Haltungen/Ziele/Save grün |
 | `bun test dev/contracts.test.js`   | `9 pass` · Aufträge/Krisen/Pacing/Auto grün  |
-| `bun dev/completion-acceptance.js` | Tick `6077` · `42/42` Erfolge · `78/78` Formen |
+| `bun test dev/specializations.test.js` | `6 pass` · Doktrinen/Bezirke/Schulen/Strategien grün |
+| `bun dev/completion-acceptance.js` | Tick `6391` · `42/42` Erfolge · `78/78` Formen |
 | `bun run balance`                  | Kraftkurven, Regionsbeute und Echo-Zyklen skalieren monoton |
 
 ### Screenshots (optional, Linux/WSL)
@@ -256,7 +265,7 @@ apt-get download fonts-noto-color-emoji && dpkg-deb -x fonts-noto-color-emoji_*.
 
 # Screenshots erzeugen
 LD_LIBRARY_PATH=/tmp/chromedeps/usr/lib/x86_64-linux-gnu bun run shots
-# → 33 PNGs in dev/screenshots/, darunter Auftragsbrett, Krisenmodal und Phase-42-Bossphase
+# → 36 PNGs in dev/screenshots/, darunter Doktrinwahl, Spezialbezirke und Phase-42-Bossphase
 ```
 
 ---

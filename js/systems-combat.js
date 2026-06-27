@@ -51,6 +51,8 @@
     if (/Untot|Vampir/.test(line)) ids.push('seelensog');
     if (/Baumhirte|Geist/.test(line) || (c && c.aspect === 'arkanist')) ids.push('lichtsegen');
     if (c && c.named) ids.push('analysieren');
+    var specializations = root.GameSpecializations, schoolAbility = specializations && c ? specializations.tacticalAbilityFor(c) : null;
+    if (schoolAbility) ids.push(schoolAbility);
     return ids.filter(function (id, i, a) { return a.indexOf(id) === i; });
   }
   function battleActor(state, holderKey) {

@@ -41,11 +41,13 @@
     frost: { id: 'frost', name: 'Frostlanze', icon: '❄️', kind: 'damage', stat: 'mag', power: 1.3, range: 40, aoeR: 0, element: 'wasser', status: 'frost', cd: 2.6 },
     heilen: { id: 'heilen', name: 'Heilwoge', icon: '💚', kind: 'heal', stat: 'mag', power: 1.6, range: 0, aoeR: 0, element: 'licht', status: null, cd: 9.0 }
   };
-  function actionKit(role) {
-    if (role === 'Magie') return ['feuer', 'frost', 'heilen'];
-    if (role === 'Verteidigung') return ['wirbel', 'heilen', 'frost'];
-    if (role === 'Fernkampf') return ['schuss', 'feuer', 'wirbel'];
-    return ['wirbel', 'schuss', 'heilen'];   // Kampf / Default
+  function actionKit(role, schoolId) {
+    var kit = role === 'Magie' ? ['feuer', 'frost', 'heilen']
+      : (role === 'Verteidigung' ? ['wirbel', 'heilen', 'frost']
+      : (role === 'Fernkampf' ? ['schuss', 'feuer', 'wirbel'] : ['wirbel', 'schuss', 'heilen']));
+    var specializations = root.GameSpecializations, schoolAbility = specializations ? specializations.actionAbilityFor(schoolId) : null;
+    if (schoolAbility) kit = [schoolAbility].concat(kit.filter(function (id) { return id !== schoolAbility; })).slice(0, 3);
+    return kit;
   }
   function makeSlot(id) {
     var a = ACTION_ABILITIES[id] || ACTION_ABILITIES.wirbel;
@@ -76,7 +78,7 @@
   }
   // Der Held bündelt die Gruppe zu einem steuerbaren Avatar (LP summiert, Offensive = bestes Mitglied).
   function buildHero(state, creatureUids, rulerJoin) {
-    var blocks = [], name = 'Held', icon = '🦸', role = rulerJoin ? 'Magie' : 'Kampf';
+    var blocks = [], name = 'Held', icon = '🦸', role = rulerJoin ? 'Magie' : 'Kampf', schoolId = null;
     if (rulerJoin) {
       blocks.push(statOf(I.rulerStats(state)));
       name = state.herrscher.name; icon = GD().rulerStages[state.herrscher.stage].icon;
@@ -85,7 +87,7 @@
       var c = I.findCreature(state, uid); if (!c) return;
       var sp = GD().creature(c.speciesId); if (!sp) return;
       blocks.push(statOf(I.creatureStats(state, c)));
-      if (!rulerJoin && blocks.length === 1) { name = c.named ? c.name : sp.name; icon = sp.icon; role = sp.role || 'Kampf'; }
+      if (!rulerJoin && blocks.length === 1) { name = c.named ? c.name : sp.name; icon = sp.icon; role = sp.role || 'Kampf'; schoolId = c.schoolId || null; }
     });
     if (!blocks.length) return null;
     var hp = 0, atk = 1, def = 1, mag = 1, tmp = 1;
@@ -97,7 +99,7 @@
       speed: 22 + tmp * 0.28,          // Einheiten/Sekunde
       atkRange: 8, atkCd: 0, atkRate: 0.55, atkDamage: atk,
       invuln: 0, dodgeCd: 0, dashT: 0, dashX: 1, dashY: 0,
-      role: role, hotbar: actionKit(role).map(makeSlot),
+      role: role, schoolId: schoolId, hotbar: actionKit(role, schoolId).map(makeSlot),
       facing: 1, dead: false, hits: 0, dodges: 0
     };
   }

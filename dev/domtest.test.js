@@ -16,7 +16,7 @@ var dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, 
 var window = dom.window, document = window.document;
 
 // Skripte in Reihenfolge im window-Scope ausführen (wie der Browser)
-for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-bestiary.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/systems-action.js', 'js/systems-contracts.js', 'js/achievements.js', 'js/completion-planner.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/render/action-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-contracts.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/ui-action-combat.js', 'js/main.js']) {
+for (const f of ['js/data-tables.js', 'js/data.js', 'js/art-data.js', 'js/state.js', 'js/systems.js', 'js/systems-bestiary.js', 'js/systems-combat.js', 'js/systems-skirmish.js', 'js/systems-siege.js', 'js/systems-battle.js', 'js/systems-action.js', 'js/systems-contracts.js', 'js/systems-specializations.js', 'js/achievements.js', 'js/completion-planner.js', 'js/render/canvas-core.js', 'js/render/effects.js', 'js/render/battle-scene.js', 'js/render/adventure-scene.js', 'js/render/action-scene.js', 'js/ui.js', 'js/ui-adventure.js', 'js/ui-progress.js', 'js/ui-contracts.js', 'js/ui-specializations.js', 'js/ui-action.js', 'js/ui-siege.js', 'js/ui-battle.js', 'js/ui-action-combat.js', 'js/main.js']) {
   window.eval(await Bun.file(dir + '/' + f).text());
 }
 
@@ -85,11 +85,26 @@ tryRender('Alle 20 Kreaturenlinien besitzen lokale Portraits ohne Emoji-Fallback
 tryRender('Reich rendern & "Bauen"-Button klicken', function () {
   window.GameUI.activeTab = 'reich'; window.GameUI.render();
   if (!document.querySelector('#screen .district-ledger')) throw new Error('kein materialisiertes Bezirksbrett');
+  if (!document.querySelector('#screen .special-board')) throw new Error('strategische Ausrichtung fehlt');
+  if (document.querySelectorAll('#screen .special-auto .profile-segment').length !== 6) throw new Error('Auto-Doktrinprofile fehlen');
+  if (document.querySelectorAll('#screen .special-slot').length !== 2) throw new Error('frühe Bezirks-Slots fehlen');
   if (!document.querySelector('#screen .district-card .district-icon .ui-icon')) throw new Error('Gebäudesymbole fehlen');
-  var btns = document.querySelectorAll('#screen .btn');
+  var btns = document.querySelectorAll('#screen .district-card .btn');
   var before = JSON.stringify(s.buildings);
   if (btns.length) btns[0].click();
   if (JSON.stringify(s.buildings) === before) throw new Error('kein Gebäude verändert');
+});
+
+tryRender('Doktrin- und Anführerschul-Modals', function () {
+  window.GameUI.openDoctrineModal();
+  if (document.querySelectorAll('#modal-root .doctrine-choice').length !== 5) throw new Error('Doktrin-Auswahl unvollständig');
+  document.querySelector('.modal-close').click();
+  var leader = window.GameState.newCreature(s, 'hobgoblin');
+  leader.named = true; leader.armyGroupId = null; s.creatures.push(leader);
+  window.GameUI.openLeaderSchoolModal(leader);
+  if (document.querySelectorAll('#modal-root .doctrine-choice').length !== 5) throw new Error('Anführerschulen unvollständig');
+  document.querySelector('.modal-close').click();
+  s.creatures = s.creatures.filter(function (creature) { return creature.uid !== leader.uid; });
 });
 
 tryRender('Kreatur beschwören über UI', function () {

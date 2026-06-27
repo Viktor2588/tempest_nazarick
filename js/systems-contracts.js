@@ -126,6 +126,7 @@
   function scaledReward(state, base, bonus) {
     var scale = 1 + Math.max(0, state.herrscher.stage || 0) * 0.35 + (state.claimedRegions || []).length * 0.06;
     if (bonus) scale *= bonus;
+    if (root.GameSpecializations) scale *= root.GameSpecializations.rewardMultiplier(state, 'contract');
     var reward = {};
     for (var resource in base) reward[resource] = Math.max(1, round(base[resource] * scale));
     return reward;
